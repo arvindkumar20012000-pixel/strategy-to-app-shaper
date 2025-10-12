@@ -14,16 +14,577 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      articles: {
+        Row: {
+          category: string
+          content: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          published_date: string
+          source: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          content?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          published_date?: string
+          source?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          content?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          published_date?: string
+          source?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      bookmarks: {
+        Row: {
+          article_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      downloads: {
+        Row: {
+          content_id: string
+          content_type: string
+          downloaded_at: string | null
+          file_name: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          downloaded_at?: string | null
+          file_name: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          downloaded_at?: string | null
+          file_name?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "downloads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mock_tests: {
+        Row: {
+          created_at: string | null
+          difficulty: string | null
+          duration_minutes: number
+          id: string
+          questions_count: number
+          subject: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty?: string | null
+          duration_minutes?: number
+          id?: string
+          questions_count?: number
+          subject: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          difficulty?: string | null
+          duration_minutes?: number
+          id?: string
+          questions_count?: number
+          subject?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      ncert_content: {
+        Row: {
+          chapter_name: string
+          chapter_number: number
+          class_number: number
+          created_at: string | null
+          id: string
+          pages: number | null
+          pdf_url: string | null
+          subject: string
+        }
+        Insert: {
+          chapter_name: string
+          chapter_number: number
+          class_number: number
+          created_at?: string | null
+          id?: string
+          pages?: number | null
+          pdf_url?: string | null
+          subject: string
+        }
+        Update: {
+          chapter_name?: string
+          chapter_number?: number
+          class_number?: number
+          created_at?: string | null
+          id?: string
+          pages?: number | null
+          pdf_url?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
+      previous_papers: {
+        Row: {
+          created_at: string | null
+          difficulty: string | null
+          duration_minutes: number
+          exam_type: string
+          id: string
+          paper_name: string
+          pdf_url: string | null
+          questions_count: number
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty?: string | null
+          duration_minutes?: number
+          exam_type: string
+          id?: string
+          paper_name: string
+          pdf_url?: string | null
+          questions_count?: number
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          difficulty?: string | null
+          duration_minutes?: number
+          exam_type?: string
+          id?: string
+          paper_name?: string
+          pdf_url?: string | null
+          questions_count?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          correct_answer: string
+          created_at: string | null
+          explanation: string | null
+          id: string
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          paper_id: string | null
+          question_text: string
+          test_id: string | null
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string | null
+          explanation?: string | null
+          id?: string
+          option_a: string
+          option_b: string
+          option_c: string
+          option_d: string
+          paper_id?: string | null
+          question_text: string
+          test_id?: string | null
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string | null
+          explanation?: string | null
+          id?: string
+          option_a?: string
+          option_b?: string
+          option_c?: string
+          option_d?: string
+          paper_id?: string | null
+          question_text?: string
+          test_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "previous_papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "mock_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          bonus_amount: number | null
+          created_at: string | null
+          id: string
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          bonus_amount?: number | null
+          created_at?: string | null
+          id?: string
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          bonus_amount?: number | null
+          created_at?: string | null
+          id?: string
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          end_date: string
+          id: string
+          plan_type: string
+          start_date: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          end_date: string
+          id?: string
+          plan_type: string
+          start_date?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          plan_type?: string
+          start_date?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_attempts: {
+        Row: {
+          completed_at: string | null
+          correct_answers: number
+          created_at: string | null
+          id: string
+          incorrect_answers: number
+          paper_id: string | null
+          score: number
+          test_id: string | null
+          time_taken_minutes: number | null
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          correct_answers?: number
+          created_at?: string | null
+          id?: string
+          incorrect_answers?: number
+          paper_id?: string | null
+          score?: number
+          test_id?: string | null
+          time_taken_minutes?: number | null
+          total_questions: number
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          correct_answers?: number
+          created_at?: string | null
+          id?: string
+          incorrect_answers?: number
+          paper_id?: string | null
+          score?: number
+          test_id?: string | null
+          time_taken_minutes?: number | null
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "previous_papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "mock_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_answers: {
+        Row: {
+          attempt_id: string
+          created_at: string | null
+          id: string
+          is_bookmarked: boolean | null
+          is_correct: boolean | null
+          question_id: string
+          selected_answer: string | null
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string | null
+          id?: string
+          is_bookmarked?: boolean | null
+          is_correct?: boolean | null
+          question_id: string
+          selected_answer?: string | null
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string | null
+          id?: string
+          is_bookmarked?: boolean | null
+          is_correct?: boolean | null
+          question_id?: string
+          selected_answer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user" | "premium"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +711,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user", "premium"],
+    },
   },
 } as const
