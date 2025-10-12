@@ -9,6 +9,7 @@ interface ArticleCardProps {
   category: string;
   description: string;
   imageUrl?: string;
+  isBookmarked?: boolean;
   onBookmark?: () => void;
   onShare?: () => void;
   onRead?: () => void;
@@ -20,6 +21,7 @@ export const ArticleCard = ({
   category,
   description,
   imageUrl,
+  isBookmarked = false,
   onBookmark,
   onShare,
   onRead,
@@ -58,7 +60,9 @@ export const ArticleCard = ({
           Read
         </Button>
         <Button onClick={onBookmark} variant="ghost" size="icon">
-          <Bookmark className="w-4 h-4" />
+          <Bookmark
+            className={`w-4 h-4 ${isBookmarked ? "fill-primary text-primary" : ""}`}
+          />
         </Button>
         <Button onClick={onShare} variant="ghost" size="icon">
           <Share2 className="w-4 h-4" />
