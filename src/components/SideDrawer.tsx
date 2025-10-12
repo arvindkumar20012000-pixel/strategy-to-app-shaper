@@ -16,10 +16,12 @@ import {
   Send,
   Shield,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SideDrawerProps {
   isOpen: boolean;
@@ -54,6 +56,13 @@ const socialLinks = [
 ];
 
 export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
+  const { signOut, user } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    onClose();
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">
@@ -65,7 +74,9 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
               </div>
               <div>
                 <div className="text-lg font-bold">ExamPulse</div>
-                <div className="text-sm text-muted-foreground">Your Exam Partner</div>
+                <div className="text-sm text-muted-foreground truncate">
+                  {user?.email || "Your Exam Partner"}
+                </div>
               </div>
             </div>
           </SheetTitle>
@@ -102,6 +113,14 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
               <span>{item.label}</span>
             </Button>
           ))}
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-destructive hover:text-destructive"
+            onClick={handleSignOut}
+          >
+            <LogOut />
+            <span>Sign Out</span>
+          </Button>
         </div>
 
         <Separator className="my-4" />
