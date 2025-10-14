@@ -31,28 +31,8 @@ const Index = () => {
   useEffect(() => {
     if (user) {
       fetchArticles();
-      // Fetch fresh news on component mount
-      fetchFreshNews();
     }
   }, [user, filter]);
-
-  const fetchFreshNews = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke("fetch-news", {
-        body: { category: "general", country: "in" },
-      });
-
-      if (error) throw error;
-      
-      if (data?.success) {
-        console.log(`Fetched ${data.articlesCount} new articles`);
-        // Refresh the articles list
-        fetchArticles();
-      }
-    } catch (error: any) {
-      console.error("Error fetching news:", error);
-    }
-  };
 
   const fetchArticles = async () => {
     if (!user) return;
@@ -179,21 +159,10 @@ const Index = () => {
               <TabsTrigger value="week">7 Days</TabsTrigger>
               <TabsTrigger value="month">30 Days</TabsTrigger>
             </TabsList>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={fetchFreshNews}
-                disabled={loading}
-              >
-                <Filter className="w-4 h-4" />
-                Refresh News
-              </Button>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4" />
-                Filter
-              </Button>
-            </div>
+            <Button variant="outline" size="sm">
+              <Filter className="w-4 h-4" />
+              Filter
+            </Button>
           </div>
 
           <TabsContent value={filter} className="space-y-4">
