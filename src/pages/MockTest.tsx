@@ -24,6 +24,7 @@ const MockTest = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [tests, setTests] = useState<MockTest[]>([]);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const navigate = useNavigate();
 
   const subjects = [
@@ -60,6 +61,47 @@ const MockTest = () => {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateTest = async () => {
+    if (!selectedSubject) {
+      toast.error("Please select a subject first");
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-test", {
+        body: {
+          subject: selectedSubject,
+          difficulty: "Medium",
+          questionsCount: 20,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        if (data.error.includes("Rate limit")) {
+          toast.error("Rate limit exceeded. Please try again later.");
+        } else if (data.error.includes("Payment required")) {
+          toast.error("Credits exhausted. Please add credits to continue.");
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
+
+      if (data?.success) {
+        toast.success(`Generated ${data.questionsCount} questions!`);
+        fetchTests(); // Refresh the test list
+      }
+    } catch (error: any) {
+      console.error("Error generating test:", error);
+      toast.error("Failed to generate test. Please try again.");
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -118,9 +160,13 @@ const MockTest = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Available Tests</h2>
-                <Button variant="secondary" disabled>
+                <Button 
+                  variant="secondary"
+                  onClick={handleGenerateTest}
+                  disabled={generating}
+                >
                   <Brain className="w-4 h-4" />
-                  Generate New Test (Coming Soon)
+                  {generating ? "Generating..." : "Generate AI Test"}
                 </Button>
               </div>
 
@@ -160,9 +206,16 @@ const MockTest = () => {
               <CardContent>
                 <Brain className="w-24 h-24 mx-auto mb-4 text-muted-foreground opacity-50" />
                 <h3 className="text-lg font-semibold mb-2">No Tests Available</h3>
-                <p className="text-muted-foreground">
-                  Tests for {selectedSubject} are being added
+                <p className="text-muted-foreground mb-4">
+                  Generate your first AI test for {selectedSubject}
                 </p>
+                <Button 
+                  onClick={handleGenerateTest}
+                  disabled={generating}
+                >
+                  <Brain className="w-4 h-4" />
+                  {generating ? "Generating..." : "Generate AI Test"}
+                </Button>
               </CardContent>
             </Card>
           )
