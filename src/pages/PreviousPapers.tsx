@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SideDrawer } from "@/components/SideDrawer";
@@ -28,6 +29,7 @@ const PreviousPapers = () => {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const exams = [
     { id: "UPSC", name: "UPSC" },
@@ -150,9 +152,12 @@ const PreviousPapers = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="flex gap-2">
-                    <Button className="flex-1" disabled>
+                    <Button 
+                      className="flex-1"
+                      onClick={() => navigate(`/test/${paper.id}?type=paper`)}
+                    >
                       <Play className="w-4 h-4" />
-                      Attempt Online (Coming Soon)
+                      Attempt Online
                     </Button>
                     <Button
                       variant="secondary"

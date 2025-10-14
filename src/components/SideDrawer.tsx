@@ -18,6 +18,7 @@ import {
   Settings,
   LogOut,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -57,9 +58,15 @@ const socialLinks = [
 
 export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
+    onClose();
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
     onClose();
   };
 
@@ -90,7 +97,7 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
               className={`w-full justify-start gap-3 ${
                 item.highlight ? "text-secondary hover:text-secondary" : ""
               }`}
-              onClick={onClose}
+              onClick={() => item.path && handleNavigation(item.path)}
             >
               {item.icon}
               <span>{item.label}</span>

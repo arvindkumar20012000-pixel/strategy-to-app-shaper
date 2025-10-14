@@ -10,6 +10,9 @@ import NCERT from "./pages/NCERT";
 import PreviousPapers from "./pages/PreviousPapers";
 import MockTest from "./pages/MockTest";
 import Auth from "./pages/Auth";
+import TestTaking from "./pages/TestTaking";
+import TestResult from "./pages/TestResult";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +55,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <MockTest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/test/:id"
+              element={
+                <ProtectedRoute>
+                  <TestTaking />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/test-result/:attemptId"
+              element={
+                <ProtectedRoute>
+                  <TestResult />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

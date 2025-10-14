@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SideDrawer } from "@/components/SideDrawer";
@@ -23,6 +24,7 @@ const MockTest = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [tests, setTests] = useState<MockTest[]>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const subjects = [
     "History",
@@ -143,8 +145,11 @@ const MockTest = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" disabled>
-                      Start Test (Coming Soon)
+                    <Button 
+                      className="w-full"
+                      onClick={() => navigate(`/test/${test.id}?type=test`)}
+                    >
+                      Start Test
                     </Button>
                   </CardContent>
                 </Card>
