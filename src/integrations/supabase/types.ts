@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: string | null
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           category: string
@@ -124,11 +154,39 @@ export type Database = {
           },
         ]
       }
+      exam_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          icon_url: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       mock_tests: {
         Row: {
           created_at: string | null
           difficulty: string | null
           duration_minutes: number
+          exam_type: string | null
           id: string
           questions_count: number
           subject: string
@@ -138,6 +196,7 @@ export type Database = {
           created_at?: string | null
           difficulty?: string | null
           duration_minutes?: number
+          exam_type?: string | null
           id?: string
           questions_count?: number
           subject: string
@@ -147,12 +206,21 @@ export type Database = {
           created_at?: string | null
           difficulty?: string | null
           duration_minutes?: number
+          exam_type?: string | null
           id?: string
           questions_count?: number
           subject?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mock_tests_exam_type_fkey"
+            columns: ["exam_type"]
+            isOneToOne: false
+            referencedRelation: "exam_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ncert_content: {
         Row: {
@@ -571,10 +639,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

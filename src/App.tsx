@@ -13,6 +13,19 @@ import Auth from "./pages/Auth";
 import TestTaking from "./pages/TestTaking";
 import TestResult from "./pages/TestResult";
 import Profile from "./pages/Profile";
+import Premium from "./pages/Premium";
+import Bookmarks from "./pages/Bookmarks";
+import Downloads from "./pages/Downloads";
+import History from "./pages/History";
+import DoubtClearance from "./pages/DoubtClearance";
+import LiveTests from "./pages/LiveTests";
+import RequestContent from "./pages/RequestContent";
+import Transactions from "./pages/Transactions";
+import FAQs from "./pages/FAQs";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,15 +87,20 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
+            <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
+            <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            <Route path="/doubt-clearance" element={<ProtectedRoute><DoubtClearance /></ProtectedRoute>} />
+            <Route path="/live-tests" element={<ProtectedRoute><LiveTests /></ProtectedRoute>} />
+            <Route path="/request-content" element={<ProtectedRoute><RequestContent /></ProtectedRoute>} />
+            <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+            <Route path="/faqs" element={<FAQs />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -213,15 +213,12 @@ const Index = () => {
                 {articles.map((article) => (
                   <ArticleCard
                     key={article.id}
+                    id={article.id}
                     title={article.title}
-                    date={article.published_date}
+                    published_date={article.published_date}
                     category={article.category}
                     description={article.description || ""}
-                    imageUrl={article.image_url || heroBanner}
-                    isBookmarked={article.isBookmarked}
-                    onBookmark={() => handleBookmark(article.id)}
-                    onShare={() => handleShare(article)}
-                    onRead={() => {}}
+                    image_url={article.image_url || heroBanner}
                   />
                 ))}
               </div>
