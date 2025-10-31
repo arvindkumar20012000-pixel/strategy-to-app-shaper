@@ -12,11 +12,24 @@ serve(async (req) => {
   }
 
   try {
-    const NEWS_API_KEY = Deno.env.get("NEWS_API_KEY");
-    if (!NEWS_API_KEY) {
-      throw new Error("NEWS_API_KEY is not configured");
+    // Initialize Supabase client first to read settings
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get API key from admin settings
+    const { data: settingsData, error: settingsError } = await supabase
+      .from("admin_settings")
+      .select("value")
+      .eq("key", "NEWS_API_KEY")
+      .maybeSingle();
+
+    if (settingsError || !settingsData?.value) {
+      console.error("NEWS_API_KEY not found in admin settings");
+      throw new Error("NEWS_API_KEY not configured. Please add it in the admin panel.");
     }
 
+    const NEWS_API_KEY = settingsData.value;
     const { category = "general", country = "in" } = await req.json().catch(() => ({}));
 
     console.log(`Fetching news for category: ${category}, country: ${country}`);
@@ -39,11 +52,6 @@ serve(async (req) => {
 
     const newsData = await newsResponse.json();
     console.log(`Fetched ${newsData.articles?.length || 0} articles`);
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Process and store articles
     const articles = newsData.articles?.map((article: any) => ({
