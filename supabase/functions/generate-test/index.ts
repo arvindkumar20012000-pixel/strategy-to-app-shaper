@@ -12,24 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client first to read settings
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get API key from admin settings
-    const { data: settingsData, error: settingsError } = await supabase
-      .from("admin_settings")
-      .select("value")
-      .eq("key", "LOVABLE_API_KEY")
-      .maybeSingle();
-
-    if (settingsError || !settingsData?.value) {
-      console.error("LOVABLE_API_KEY not found in admin settings");
-      throw new Error("LOVABLE_API_KEY not configured. Please add it in the admin panel.");
+    // Get Lovable API key from environment (automatically provided by Lovable Cloud)
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY not configured");
     }
-
-    const LOVABLE_API_KEY = settingsData.value;
     const { subject, difficulty = "Medium", questionsCount = 20 } = await req.json();
 
     if (!subject) {
@@ -119,6 +106,11 @@ serve(async (req) => {
     }
 
     console.log(`Successfully generated ${questions.length} questions`);
+
+    // Initialize Supabase client for database operations
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Create the mock test
     const testTitle = `AI Generated ${subject} Test - ${difficulty}`;

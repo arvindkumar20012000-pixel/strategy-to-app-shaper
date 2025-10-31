@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Key, Loader2 } from "lucide-react";
 
 export function AdminSettings() {
-  const [apiKey, setApiKey] = useState("");
   const [newsApiKey, setNewsApiKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -23,15 +22,11 @@ export function AdminSettings() {
       const { data, error } = await supabase
         .from("admin_settings")
         .select("*")
-        .in("key", ["LOVABLE_API_KEY", "NEWS_API_KEY"]);
+        .eq("key", "NEWS_API_KEY")
+        .maybeSingle();
 
       if (error) throw error;
-
-      const lovableKey = data?.find((s) => s.key === "LOVABLE_API_KEY");
-      const newsKey = data?.find((s) => s.key === "NEWS_API_KEY");
-
-      if (lovableKey) setApiKey(lovableKey.value || "");
-      if (newsKey) setNewsApiKey(newsKey.value || "");
+      if (data) setNewsApiKey(data.value || "");
     } catch (error: any) {
       toast.error("Failed to load settings");
     } finally {
@@ -40,8 +35,8 @@ export function AdminSettings() {
   };
 
   const handleSave = async () => {
-    if (!apiKey || !newsApiKey) {
-      toast.error("Please fill in all API keys");
+    if (!newsApiKey) {
+      toast.error("Please enter the News API key");
       return;
     }
 
@@ -49,28 +44,16 @@ export function AdminSettings() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const settings = [
-        {
-          key: "LOVABLE_API_KEY",
-          value: apiKey,
-          description: "API key for Lovable AI integration",
-          updated_by: user?.id,
-        },
-        {
+      const { error } = await supabase
+        .from("admin_settings")
+        .upsert({
           key: "NEWS_API_KEY",
           value: newsApiKey,
           description: "API key for News API integration",
           updated_by: user?.id,
-        },
-      ];
+        }, { onConflict: "key" });
 
-      for (const setting of settings) {
-        const { error } = await supabase
-          .from("admin_settings")
-          .upsert(setting, { onConflict: "key" });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       toast.success("Settings saved successfully");
     } catch (error: any) {
@@ -96,17 +79,9 @@ export function AdminSettings() {
       </div>
 
       <div className="space-y-4">
-        <div>
-          <Label htmlFor="lovable-api-key">Lovable AI API Key</Label>
-          <Input
-            id="lovable-api-key"
-            type="password"
-            placeholder="Enter Lovable AI API key"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-          <p className="text-sm text-muted-foreground mt-1">
-            Used for generating AI mock tests and current affairs content
+        <div className="p-4 bg-muted rounded-lg mb-4">
+          <p className="text-sm text-muted-foreground">
+            ✓ AI features are automatically enabled via Lovable AI (includes Google Gemini models)
           </p>
         </div>
 
@@ -120,7 +95,7 @@ export function AdminSettings() {
             onChange={(e) => setNewsApiKey(e.target.value)}
           />
           <p className="text-sm text-muted-foreground mt-1">
-            Used for fetching current affairs articles
+            Get a free key at <a href="https://newsapi.org" target="_blank" rel="noopener noreferrer" className="underline">newsapi.org</a> for fetching current affairs
           </p>
         </div>
 
