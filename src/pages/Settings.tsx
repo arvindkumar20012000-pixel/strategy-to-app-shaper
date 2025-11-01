@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SideDrawer } from "@/components/SideDrawer";
@@ -8,12 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Settings as SettingsIcon, Bell, Moon, Globe } from "lucide-react";
 import { toast } from "sonner";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function Settings() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [emailUpdates, setEmailUpdates] = useState(true);
+  const { theme, setTheme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const handleSave = () => {
     toast.success("Settings saved successfully");
@@ -90,8 +92,8 @@ export default function Settings() {
                 </div>
                 <Switch
                   id="dark-mode"
-                  checked={darkMode}
-                  onCheckedChange={setDarkMode}
+                  checked={isDarkMode}
+                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                 />
               </div>
             </Card>
