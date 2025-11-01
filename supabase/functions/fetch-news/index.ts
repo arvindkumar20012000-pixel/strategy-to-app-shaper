@@ -12,24 +12,32 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client first to read settings
+    // Initialize Supabase client (needed for DB writes and fallback settings)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get API key from admin settings
-    const { data: settingsData, error: settingsError } = await supabase
-      .from("admin_settings")
-      .select("value")
-      .eq("key", "NEWS_API_KEY")
-      .maybeSingle();
+    // Prefer secret from environment; fallback to admin_settings
+    let NEWS_API_KEY = Deno.env.get("NEWS_API_KEY") || undefined;
+    if (NEWS_API_KEY) {
+      console.log("Using NEWS_API_KEY from secrets");
+    } else {
+      const { data: settingsData, error: settingsError } = await supabase
+        .from("admin_settings")
+        .select("value")
+        .eq("key", "NEWS_API_KEY")
+        .maybeSingle();
 
-    if (settingsError || !settingsData?.value) {
-      console.error("NEWS_API_KEY not found in admin settings");
-      throw new Error("NEWS_API_KEY not configured. Please add it in the admin panel.");
+      if (settingsError || !settingsData?.value) {
+        console.error("NEWS_API_KEY not found in env or admin settings");
+        throw new Error(
+          "NEWS_API_KEY not configured. Please add it in the admin panel or as a backend secret."
+        );
+      }
+      NEWS_API_KEY = settingsData.value;
+      console.log("Using NEWS_API_KEY from admin settings");
     }
 
-    const NEWS_API_KEY = settingsData.value;
     const { category = "general", country = "in" } = await req.json().catch(() => ({}));
 
     console.log(`Fetching news for category: ${category}, country: ${country}`);
@@ -39,7 +47,7 @@ serve(async (req) => {
       `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&pageSize=20`,
       {
         headers: {
-          "X-Api-Key": NEWS_API_KEY,
+          "X-Api-Key": NEWS_API_KEY as string,
         },
       }
     );
