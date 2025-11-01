@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-test]
 verify_jwt = false
+
+[functions.ai-doubt-helper]
+verify_jwt = false
