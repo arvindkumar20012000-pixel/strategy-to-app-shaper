@@ -12,67 +12,79 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client (needed for DB writes and fallback settings)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Prefer secret from environment; fallback to admin_settings
-    let NEWS_API_KEY = Deno.env.get("NEWS_API_KEY") || undefined;
-    if (NEWS_API_KEY) {
-      console.log("Using NEWS_API_KEY from secrets");
-    } else {
-      const { data: settingsData, error: settingsError } = await supabase
-        .from("admin_settings")
-        .select("value")
-        .eq("key", "NEWS_API_KEY")
-        .maybeSingle();
+    const { category = "education" } = await req.json().catch(() => ({}));
 
-      if (settingsError || !settingsData?.value) {
-        console.error("NEWS_API_KEY not found in env or admin settings");
-        throw new Error(
-          "NEWS_API_KEY not configured. Please add it in the admin panel or as a backend secret."
-        );
-      }
-      NEWS_API_KEY = settingsData.value;
-      console.log("Using NEWS_API_KEY from admin settings");
+    console.log(`Generating educational news for category: ${category}`);
+
+    // Use Lovable AI to generate educational news articles
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    const { category = "general", country = "in" } = await req.json().catch(() => ({}));
+    const prompt = `Generate 5 recent educational news articles related to ${category}, exams, and student life in India. 
+    For each article, provide:
+    - title (max 100 chars)
+    - description (max 200 chars)
+    - content (2-3 paragraphs)
+    - source name
+    
+    Format as JSON array with keys: title, description, content, source
+    Make them relevant, informative, and recent (dated within last week).`;
 
-    console.log(`Fetching news for category: ${category}, country: ${country}`);
+    const aiResponse = await fetch("https://api.lovable.app/v1/ai/generate", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.7,
+      }),
+    });
 
-    // Fetch news from NewsAPI
-    const newsResponse = await fetch(
-      `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&pageSize=20`,
-      {
-        headers: {
-          "X-Api-Key": NEWS_API_KEY as string,
-        },
-      }
-    );
-
-    if (!newsResponse.ok) {
-      const errorText = await newsResponse.text();
-      console.error("NewsAPI error:", errorText);
-      throw new Error(`NewsAPI error: ${newsResponse.status}`);
+    if (!aiResponse.ok) {
+      throw new Error(`AI API error: ${aiResponse.status}`);
     }
 
-    const newsData = await newsResponse.json();
-    console.log(`Fetched ${newsData.articles?.length || 0} articles`);
+    const aiData = await aiResponse.json();
+    const generatedText = aiData.choices?.[0]?.message?.content || "[]";
+    
+    // Parse the AI response
+    let articlesData;
+    try {
+      const jsonMatch = generatedText.match(/\[[\s\S]*\]/);
+      articlesData = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+    } catch (e) {
+      console.error("Failed to parse AI response, using fallback");
+      articlesData = [];
+    }
 
-    // Process and store articles
-    const articles = newsData.articles?.map((article: any) => ({
-      title: article.title || "Untitled",
-      description: article.description,
-      content: article.content,
-      source: article.source?.name,
-      image_url: article.urlToImage,
+    console.log(`Generated ${articlesData.length} articles`);
+
+    // Format articles for database
+    const articles = articlesData.map((article: any, index: number) => ({
+      title: article.title || `Educational Update ${index + 1}`,
+      description: article.description || "",
+      content: article.content || "",
+      source: article.source || "ExamPulse News",
+      image_url: null,
       category: category,
-      published_date: new Date(article.publishedAt).toISOString().split("T")[0],
-    })) || [];
+      published_date: new Date().toISOString().split("T")[0],
+    }));
 
-    // Insert articles into database (ignore duplicates)
+    // Insert articles into database
     if (articles.length > 0) {
       const { error: insertError } = await supabase
         .from("articles")
@@ -94,10 +106,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error in fetch-news function:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to fetch news" }),
+      JSON.stringify({ error: (error as Error).message || "Failed to generate news" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
