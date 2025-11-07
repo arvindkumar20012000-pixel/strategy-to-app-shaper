@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface SideDrawerProps {
   isOpen: boolean;
@@ -59,6 +60,7 @@ const socialLinks = [
 export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,6 +70,13 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
   const handleNavigation = (path: string) => {
     navigate(path);
     onClose();
+  };
+
+  const handleAction = (action: string) => {
+    if (action === "toggle-theme") {
+      setTheme(theme === "dark" ? "light" : "dark");
+      onClose();
+    }
   };
 
   return (
@@ -114,10 +123,19 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
               key={index}
               variant="ghost"
               className="w-full justify-start gap-3"
-              onClick={onClose}
+              onClick={() => {
+                if ((item as any).action) handleAction((item as any).action as string);
+                else if ((item as any).path) handleNavigation((item as any).path as string);
+              }}
             >
               {item.icon}
-              <span>{item.label}</span>
+              <span>
+                {"action" in item && item.action === "toggle-theme"
+                  ? theme === "dark"
+                    ? "Turn Night Mode Off"
+                    : "Turn Night Mode On"
+                  : item.label}
+              </span>
             </Button>
           ))}
           <Button
