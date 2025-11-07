@@ -154,7 +154,7 @@ const PreviousPapers = () => {
                   <CardContent className="flex gap-2">
                     <Button 
                       className="flex-1"
-                      onClick={() => navigate(`/test/${paper.id}?type=paper`)}
+                      onClick={() => navigate(`/exam-instructions?paperId=${paper.id}&type=paper&name=${encodeURIComponent(paper.paper_name)}`)}
                     >
                       <Play className="w-4 h-4" />
                       Attempt Online

@@ -36,7 +36,7 @@ serve(async (req) => {
     Format as JSON array with keys: title, description, content, source
     Make them relevant, informative, and recent (dated within last week).`;
 
-    const aiResponse = await fetch("https://api.lovable.app/v1/ai/generate", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
@@ -50,7 +50,6 @@ serve(async (req) => {
             content: prompt,
           },
         ],
-        temperature: 0.7,
       }),
     });
 

@@ -13,6 +13,7 @@ import MockTest from "./pages/MockTest";
 import Auth from "./pages/Auth";
 import TestTaking from "./pages/TestTaking";
 import TestResult from "./pages/TestResult";
+import ExamInstructions from "./pages/ExamInstructions";
 import Profile from "./pages/Profile";
 import Premium from "./pages/Premium";
 import Bookmarks from "./pages/Bookmarks";
@@ -74,7 +75,23 @@ const App = () => (
               }
             />
             <Route
+              path="/exam-instructions"
+              element={
+                <ProtectedRoute>
+                  <ExamInstructions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/test/:id"
+              element={
+                <ProtectedRoute>
+                  <TestTaking />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/test-taking/:id"
               element={
                 <ProtectedRoute>
                   <TestTaking />
