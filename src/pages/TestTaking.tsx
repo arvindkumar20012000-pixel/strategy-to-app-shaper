@@ -34,6 +34,7 @@ const TestTaking = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [markedForReview, setMarkedForReview] = useState<Set<string>>(new Set());
   const [attemptId, setAttemptId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -125,6 +126,42 @@ const TestTaking = () => {
     setAnswers({ ...answers, [currentQuestion.id]: answer });
   };
 
+  const toggleMarkForReview = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    const newMarked = new Set(markedForReview);
+    if (newMarked.has(currentQuestion.id)) {
+      newMarked.delete(currentQuestion.id);
+    } else {
+      newMarked.add(currentQuestion.id);
+    }
+    setMarkedForReview(newMarked);
+  };
+
+  const getQuestionStatus = (questionId: string) => {
+    const isAnswered = !!answers[questionId];
+    const isMarked = markedForReview.has(questionId);
+    
+    if (isAnswered && isMarked) return "answered-marked";
+    if (isAnswered) return "answered";
+    if (isMarked) return "marked";
+    return "not-answered";
+  };
+
+  const getStatusColor = (status: string, isCurrent: boolean) => {
+    if (isCurrent) return "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2";
+    
+    switch (status) {
+      case "answered":
+        return "bg-green-500 text-white";
+      case "marked":
+        return "bg-purple-500 text-white";
+      case "answered-marked":
+        return "bg-yellow-500 text-white";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user || !attemptId) return;
 
@@ -199,107 +236,173 @@ const TestTaking = () => {
   if (questions.length === 0) return null;
 
   const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
   const answeredCount = Object.keys(answers).length;
+  const markedCount = markedForReview.size;
+  const notAnsweredCount = questions.length - answeredCount;
 
   return (
-    <div className="min-h-screen bg-background pb-6">
+    <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setDrawerOpen(true)} showSearch={false} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        {/* Test Header */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-xl font-bold">{testName}</h1>
-                <p className="text-sm text-muted-foreground">
-                  Question {currentQuestionIndex + 1} of {questions.length}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-destructive">
-                <Clock className="w-5 h-5" />
-                <span className="text-xl font-bold">{formatTime(timeLeft)}</span>
-              </div>
-            </div>
-            <Progress value={progress} className="h-2" />
-            <p className="text-sm text-muted-foreground mt-2">
-              Answered: {answeredCount}/{questions.length}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Question Card */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg">
-              Q{currentQuestionIndex + 1}. {currentQuestion.question_text}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={answers[currentQuestion.id] || ""}
-              onValueChange={handleAnswerSelect}
-              className="space-y-3"
-            >
-              {["a", "b", "c", "d"].map((option) => (
-                <div
-                  key={option}
-                  className="flex items-center space-x-2 p-4 rounded-lg border border-border hover:bg-accent cursor-pointer"
-                >
-                  <RadioGroupItem value={option} id={`option-${option}`} />
-                  <Label
-                    htmlFor={`option-${option}`}
-                    className="flex-1 cursor-pointer"
-                  >
-                    {currentQuestion[`option_${option}` as keyof Question]}
-                  </Label>
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Main Test Area */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Test Header */}
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-xl font-bold">{testName}</h1>
+                    <p className="text-sm text-muted-foreground">
+                      Question {currentQuestionIndex + 1} of {questions.length}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-destructive/10 rounded-lg">
+                    <Clock className="w-5 h-5 text-destructive" />
+                    <span className="text-xl font-bold text-destructive">{formatTime(timeLeft)}</span>
+                  </div>
                 </div>
-              ))}
-            </RadioGroup>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between gap-4">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
-            disabled={currentQuestionIndex === 0}
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
+            {/* Question Card */}
+            <Card className="border-2">
+              <CardHeader className="bg-muted/50">
+                <CardTitle className="text-lg">
+                  Q{currentQuestionIndex + 1}. {currentQuestion.question_text}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <RadioGroup
+                  value={answers[currentQuestion.id] || ""}
+                  onValueChange={handleAnswerSelect}
+                  className="space-y-3"
+                >
+                  {["a", "b", "c", "d"].map((option) => (
+                    <div
+                      key={option}
+                      className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                        answers[currentQuestion.id] === option
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50 hover:bg-accent"
+                      }`}
+                    >
+                      <RadioGroupItem value={option} id={`option-${option}`} />
+                      <Label
+                        htmlFor={`option-${option}`}
+                        className="flex-1 cursor-pointer font-medium"
+                      >
+                        <span className="font-bold mr-2">{option.toUpperCase()}.</span>
+                        {currentQuestion[`option_${option}` as keyof Question]}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </CardContent>
+            </Card>
 
-          <div className="flex gap-2">
-            {questions.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentQuestionIndex(idx)}
-                className={`w-8 h-8 rounded-full text-sm font-medium transition-all ${
-                  idx === currentQuestionIndex
-                    ? "bg-primary text-primary-foreground"
-                    : answers[questions[idx].id]
-                    ? "bg-secondary text-secondary-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-accent"
-                }`}
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Button
+                variant="outline"
+                onClick={toggleMarkForReview}
+                className={markedForReview.has(currentQuestion.id) ? "bg-purple-500 text-white hover:bg-purple-600" : ""}
               >
-                {idx + 1}
-              </button>
-            ))}
+                {markedForReview.has(currentQuestion.id) ? "Unmark" : "Mark for Review"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const newAnswers = { ...answers };
+                  delete newAnswers[currentQuestion.id];
+                  setAnswers(newAnswers);
+                }}
+              >
+                Clear Response
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
+                disabled={currentQuestionIndex === 0}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Previous
+              </Button>
+              {currentQuestionIndex === questions.length - 1 ? (
+                <Button onClick={handleSubmit} variant="default">
+                  Submit Test
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
+                  variant="default"
+                >
+                  Save & Next
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              )}
+            </div>
           </div>
 
-          {currentQuestionIndex === questions.length - 1 ? (
-            <Button onClick={handleSubmit}>Submit Test</Button>
-          ) : (
-            <Button
-              onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          )}
+          {/* Question Palette Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-6 border-2">
+              <CardHeader>
+                <CardTitle className="text-base">Question Palette</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Status Legend */}
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-green-500"></div>
+                    <span>Answered ({answeredCount - markedCount})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-muted"></div>
+                    <span>Not Answered ({notAnsweredCount})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-purple-500"></div>
+                    <span>Marked ({markedCount})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-yellow-500"></div>
+                    <span>Answered & Marked</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-primary ring-2 ring-primary ring-offset-2"></div>
+                    <span>Current</span>
+                  </div>
+                </div>
+
+                {/* Question Grid */}
+                <div className="grid grid-cols-5 gap-2 pt-4 border-t">
+                  {questions.map((q, idx) => {
+                    const status = getQuestionStatus(q.id);
+                    const isCurrent = idx === currentQuestionIndex;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentQuestionIndex(idx)}
+                        className={`w-full aspect-square rounded text-sm font-bold transition-all ${getStatusColor(
+                          status,
+                          isCurrent
+                        )}`}
+                      >
+                        {idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <Button onClick={handleSubmit} className="w-full mt-4" size="lg">
+                  Submit Test
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>

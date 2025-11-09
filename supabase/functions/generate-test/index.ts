@@ -17,7 +17,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
-    const { subject, difficulty = "Medium", questionsCount = 20 } = await req.json();
+    const { subject, difficulty = "Medium", questionsCount = 20, language = "english" } = await req.json();
 
     if (!subject) {
       throw new Error("Subject is required");
@@ -50,7 +50,7 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: `Generate ${questionsCount} multiple-choice questions for ${subject} at ${difficulty} difficulty level. Focus on topics relevant to Indian competitive exams like UPSC, SSC, Banking, etc. Return ONLY the JSON array, no other text.`,
+            content: `Generate ${questionsCount} multiple-choice questions for ${subject} at ${difficulty} difficulty level. Focus on topics relevant to Indian competitive exams like UPSC, SSC, Banking, Railway, etc. ${language === "hindi" ? "Generate all questions, options, and explanations in HINDI language only." : "Generate in English."} Return ONLY the JSON array, no other text.`,
           },
         ],
         temperature: 0.7,

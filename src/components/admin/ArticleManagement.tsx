@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, Plus, Loader2, Trash2 } from "lucide-react";
@@ -25,6 +26,7 @@ export function ArticleManagement() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [language, setLanguage] = useState("english");
 
   useEffect(() => {
     fetchArticles();
@@ -50,7 +52,9 @@ export function ArticleManagement() {
   const handleGenerateNews = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("fetch-news");
+      const { data, error } = await supabase.functions.invoke("fetch-news", {
+        body: { language }
+      });
       
       if (error) throw error;
       
@@ -109,12 +113,25 @@ export function ArticleManagement() {
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-semibold">Article Management</h2>
+        <div className="flex items-center gap-2 mb-6">
+          <FileText className="w-5 h-5 text-primary" />
+          <h2 className="text-xl font-semibold">Article Management</h2>
+        </div>
+
+        <div className="space-y-4 mb-6">
+          <div>
+            <Label htmlFor="news-language">Language for AI News</Label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger id="news-language">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="hindi">Hindi (हिंदी)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Button onClick={handleGenerateNews} disabled={loading}>
+          <Button onClick={handleGenerateNews} disabled={loading} className="w-full">
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
             Generate AI News
           </Button>

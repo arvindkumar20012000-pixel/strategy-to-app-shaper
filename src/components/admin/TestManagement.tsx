@@ -30,6 +30,7 @@ export function TestManagement() {
   const [difficulty, setDifficulty] = useState("Medium");
   const [questionsCount, setQuestionsCount] = useState("20");
   const [examType, setExamType] = useState("");
+  const [language, setLanguage] = useState("english");
 
   useEffect(() => {
     fetchTests();
@@ -81,6 +82,7 @@ export function TestManagement() {
           difficulty,
           questionsCount: parseInt(questionsCount),
           examType,
+          language,
         },
       });
 
@@ -168,6 +170,19 @@ export function TestManagement() {
                 <SelectItem value="20">20</SelectItem>
                 <SelectItem value="30">30</SelectItem>
                 <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="test-language">Language</Label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger id="test-language">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="hindi">Hindi (हिंदी)</SelectItem>
               </SelectContent>
             </Select>
           </div>

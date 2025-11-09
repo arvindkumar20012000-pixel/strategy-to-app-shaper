@@ -16,7 +16,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { category = "education" } = await req.json().catch(() => ({}));
+    const { category = "education", language = "english" } = await req.json().catch(() => ({}));
 
     console.log(`Generating educational news for category: ${category}`);
 
@@ -26,7 +26,11 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    const prompt = `Generate 5 recent educational news articles related to ${category}, exams, and student life in India. 
+    const languageInstruction = language === "hindi" 
+      ? "Generate ALL content (title, description, content) in HINDI language only." 
+      : "Generate in English.";
+    
+    const prompt = `Generate 5 recent educational news articles related to ${category}, exams, and student life in India. ${languageInstruction}
     For each article, provide:
     - title (max 100 chars)
     - description (max 200 chars)
