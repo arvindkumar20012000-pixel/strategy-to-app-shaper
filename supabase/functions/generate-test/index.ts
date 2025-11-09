@@ -44,7 +44,7 @@ serve(async (req) => {
   "option_b": "Second option", 
   "option_c": "Third option",
   "option_d": "Fourth option",
-  "correct_answer": "a" (or "b", "c", "d"),
+  "correct_answer": "A" (must be uppercase: "A", "B", "C", or "D"),
   "explanation": "Brief explanation of the correct answer"
 }`,
           },
@@ -141,7 +141,7 @@ serve(async (req) => {
       option_b: q.option_b,
       option_c: q.option_c,
       option_d: q.option_d,
-      correct_answer: q.correct_answer,
+      correct_answer: q.correct_answer.toUpperCase(), // Convert to uppercase
       explanation: q.explanation,
     }));
 
