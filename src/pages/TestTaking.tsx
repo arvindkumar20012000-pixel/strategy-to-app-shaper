@@ -181,14 +181,15 @@ const TestTaking = () => {
 
       const userAnswers = questions.map((q) => {
         const selectedAnswer = answers[q.id];
-        const isCorrect = selectedAnswer === q.correct_answer;
+        const selectedUpper = selectedAnswer ? selectedAnswer.toUpperCase() : null;
+        const isCorrect = selectedUpper != null && selectedUpper === q.correct_answer;
         if (isCorrect) correctCount++;
-        else if (selectedAnswer) incorrectCount++;
+        else if (selectedUpper) incorrectCount++;
 
         return {
           attempt_id: attemptId,
           question_id: q.id,
-          selected_answer: selectedAnswer || null,
+          selected_answer: selectedUpper,
           is_correct: isCorrect,
         };
       });
@@ -430,28 +431,28 @@ const TestTaking = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Submit Test?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>Are you sure you want to submit the test? You won't be able to change your answers after submission.</p>
-              <div className="grid grid-cols-2 gap-3 pt-3 text-sm">
-                <div className="p-3 rounded-lg bg-accent">
-                  <p className="text-muted-foreground">Total Questions</p>
-                  <p className="text-lg font-bold">{questions.length}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-accent">
-                  <p className="text-muted-foreground">Answered</p>
-                  <p className="text-lg font-bold text-green-600">{answeredCount}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-accent">
-                  <p className="text-muted-foreground">Not Answered</p>
-                  <p className="text-lg font-bold text-destructive">{notAnsweredCount}</p>
-                </div>
-                <div className="p-3 rounded-lg bg-accent">
-                  <p className="text-muted-foreground">Time Left</p>
-                  <p className="text-lg font-bold">{formatTime(timeLeft)}</p>
-                </div>
-              </div>
+            <AlertDialogDescription>
+              Are you sure you want to submit the test? You won't be able to change your answers after submission.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="grid grid-cols-2 gap-3 pt-3 text-sm">
+            <div className="p-3 rounded-lg bg-accent">
+              <p className="text-muted-foreground">Total Questions</p>
+              <p className="text-lg font-bold">{questions.length}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-accent">
+              <p className="text-muted-foreground">Answered</p>
+              <p className="text-lg font-bold text-green-600">{answeredCount}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-accent">
+              <p className="text-muted-foreground">Not Answered</p>
+              <p className="text-lg font-bold text-destructive">{notAnsweredCount}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-accent">
+              <p className="text-muted-foreground">Time Left</p>
+              <p className="text-lg font-bold">{formatTime(timeLeft)}</p>
+            </div>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleSubmit}>Submit Test</AlertDialogAction>

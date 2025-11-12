@@ -227,8 +227,8 @@ const TestResult = () => {
               <CardContent className="space-y-3">
                 <div className="space-y-2">
                   {["a", "b", "c", "d"].map((option) => {
-                    const isCorrect = option === answer.questions.correct_answer;
-                    const isSelected = option === answer.selected_answer;
+                    const isCorrect = option.toUpperCase() === answer.questions.correct_answer;
+                    const isSelected = option.toUpperCase() === (answer.selected_answer || "");
                     return (
                       <div
                         key={option}
