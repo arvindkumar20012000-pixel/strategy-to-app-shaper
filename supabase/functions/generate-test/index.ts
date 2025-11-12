@@ -50,7 +50,16 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: `Generate ${questionsCount} multiple-choice questions for ${subject} at ${difficulty} difficulty level. Focus on topics relevant to Indian competitive exams like UPSC, SSC, Banking, Railway, etc. ${language === "hindi" ? "Generate all questions, options, and explanations in HINDI language only." : "Generate in English."} Return ONLY the JSON array, no other text.`,
+            content: `${language === "hindi" ? "सभी प्रश्न, विकल्प और स्पष्टीकरण केवल हिंदी भाषा में उत्पन्न करें। (Generate all questions, options, and explanations in HINDI language only.)" : "Generate all content in English language."}
+            
+Generate ${questionsCount} multiple-choice questions for ${subject} at ${difficulty} difficulty level.
+
+Difficulty Guidelines:
+${difficulty === "Easy" ? "- Questions should be basic and straightforward\n- Suitable for beginners\n- Focus on fundamental concepts" : difficulty === "Hard" ? "- Questions should be advanced and challenging\n- Require in-depth knowledge\n- Include analytical and application-based questions" : "- Questions should be moderate difficulty\n- Mix of direct and application-based questions\n- Suitable for intermediate learners"}
+
+Focus on topics relevant to Indian competitive exams like UPSC, SSC, Banking, Railway, State PSC, Defence, etc.
+
+Return ONLY the JSON array, no other text.`,
           },
         ],
         temperature: 0.7,
@@ -112,8 +121,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Create the mock test
-    const testTitle = `AI Generated ${subject} Test - ${difficulty}`;
+    // Create the mock test with language-appropriate title
+    const testTitle = language === "hindi" 
+      ? `${subject} - ${difficulty} परीक्षा (AI जनित)`
+      : `AI Generated ${subject} Test - ${difficulty}`;
     const { data: testData, error: testError } = await supabase
       .from("mock_tests")
       .insert({

@@ -26,19 +26,43 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
+    const currentDate = new Date().toLocaleDateString('en-IN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
     const languageInstruction = language === "hindi" 
-      ? "Generate ALL content (title, description, content) in HINDI language only." 
-      : "Generate in English.";
+      ? "सभी लेख, शीर्षक, विवरण और सामग्री केवल हिंदी भाषा में लिखें। (Write ALL articles, titles, descriptions, and content in HINDI language only.)" 
+      : "Generate all content in English language.";
     
-    const prompt = `Generate 5 recent educational news articles related to ${category}, exams, and student life in India. ${languageInstruction}
-    For each article, provide:
-    - title (max 100 chars)
-    - description (max 200 chars)
-    - content (2-3 paragraphs)
-    - source name
-    
-    Format as JSON array with keys: title, description, content, source
-    Make them relevant, informative, and recent (dated within last week).`;
+    const prompt = `${languageInstruction}
+
+Current Date: ${currentDate}
+
+Generate 5 LATEST and MOST RECENT current affairs news articles from TODAY or THIS WEEK that are highly relevant for competitive exam preparation in India.
+
+Focus on BREAKING NEWS and RECENT UPDATES about:
+- Latest SSC exam notifications and updates (last 7 days)
+- Recent Railway recruitment announcements
+- Banking sector news and exam notifications
+- UPSC current affairs and recent policy updates
+- State PSC latest notifications
+- Defence recruitment recent announcements
+- Important government schemes launched THIS WEEK
+- Recent constitutional appointments (last few days)
+- Major economic and policy decisions from THIS WEEK
+- Latest amendments in laws and regulations
+
+For each article, provide:
+- title: Catchy headline about the latest update (max 100 chars)
+- description: Brief summary of recent development (max 200 chars)
+- content: Detailed article covering who, what, when, where, why (3-4 paragraphs)
+- source: "ExamPulse Current Affairs"
+
+Format as JSON array with keys: title, description, content, source
+
+IMPORTANT: Focus ONLY on news from the last 7 days. Make it feel fresh, urgent, and immediately relevant for exam preparation happening NOW.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

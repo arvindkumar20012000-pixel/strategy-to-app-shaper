@@ -150,11 +150,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
       <Header onMenuClick={() => setDrawerOpen(true)} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6">
+      <main className="max-w-screen-xl mx-auto px-4 py-6 w-full">
         <div
           className="rounded-2xl overflow-hidden mb-6 h-48 relative bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBanner})` }}

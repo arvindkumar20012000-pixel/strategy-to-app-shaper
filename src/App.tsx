@@ -40,7 +40,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-          <Routes>
+            <div className="overflow-x-hidden w-full">
+              <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route
               path="/"
@@ -122,6 +123,7 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+            </div>
         </AuthProvider>
       </BrowserRouter>
       </TooltipProvider>
