@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ interface Question {
 const TestTaking = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type"); // 'test' or 'paper'
@@ -164,9 +166,14 @@ const TestTaking = () => {
     }
   };
 
+  const handleSubmitClick = () => {
+    setSubmitDialogOpen(true);
+  };
+
   const handleSubmit = async () => {
     if (!user || !attemptId) return;
 
+    setSubmitDialogOpen(false);
     try {
       // Calculate score
       let correctCount = 0;
@@ -248,85 +255,85 @@ const TestTaking = () => {
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       {/* Fixed Header with Timer and Navigation */}
-      <div className="sticky top-0 z-10 bg-background border-b">
+      <div className="sticky top-0 z-10 bg-background border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Sheet open={paletteOpen} onOpenChange={setPaletteOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Grid3x3 className="w-4 h-4 mr-2" />
-                    Questions
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[400px] sm:w-[540px] overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>Question Palette</SheetTitle>
-                  </SheetHeader>
-                  <div className="space-y-4 mt-6">
-                    {/* Status Legend */}
-                    <div className="space-y-2 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-green-500"></div>
-                        <span>Answered ({answeredCount - markedCount})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-muted"></div>
-                        <span>Not Answered ({notAnsweredCount})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-purple-500"></div>
-                        <span>Marked ({markedCount})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-yellow-500"></div>
-                        <span>Answered & Marked</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-primary ring-2 ring-primary ring-offset-2"></div>
-                        <span>Current</span>
-                      </div>
+          <div className="flex items-center justify-between gap-4">
+            <Sheet open={paletteOpen} onOpenChange={setPaletteOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="shrink-0">
+                  <Grid3x3 className="w-4 h-4 mr-2" />
+                  Questions
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[400px] sm:w-[540px] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Question Palette</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-4 mt-6">
+                  {/* Status Legend */}
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-green-500"></div>
+                      <span>Answered ({answeredCount - markedCount})</span>
                     </div>
-
-                    {/* Question Grid */}
-                    <div className="grid grid-cols-5 gap-2 pt-4 border-t">
-                      {questions.map((q, idx) => {
-                        const status = getQuestionStatus(q.id);
-                        const isCurrent = idx === currentQuestionIndex;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => {
-                              setCurrentQuestionIndex(idx);
-                              setPaletteOpen(false);
-                            }}
-                            className={`w-full aspect-square rounded text-sm font-bold transition-all ${getStatusColor(
-                              status,
-                              isCurrent
-                            )}`}
-                          >
-                            {idx + 1}
-                          </button>
-                        );
-                      })}
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-muted"></div>
+                      <span>Not Answered ({notAnsweredCount})</span>
                     </div>
-
-                    <Button onClick={handleSubmit} className="w-full mt-4" size="lg" variant="destructive">
-                      Submit Test
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-purple-500"></div>
+                      <span>Marked ({markedCount})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-yellow-500"></div>
+                      <span>Answered & Marked</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded bg-primary ring-2 ring-primary ring-offset-2"></div>
+                      <span>Current</span>
+                    </div>
                   </div>
-                </SheetContent>
-              </Sheet>
-              <div>
-                <h2 className="font-semibold text-sm">{testName}</h2>
-                <p className="text-xs text-muted-foreground">
-                  Question {currentQuestionIndex + 1} of {questions.length}
-                </p>
-              </div>
+
+                  {/* Question Grid */}
+                  <div className="grid grid-cols-5 gap-2 pt-4 border-t">
+                    {questions.map((q, idx) => {
+                      const status = getQuestionStatus(q.id);
+                      const isCurrent = idx === currentQuestionIndex;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setCurrentQuestionIndex(idx);
+                            setPaletteOpen(false);
+                          }}
+                          className={`w-full aspect-square rounded text-sm font-bold transition-all ${getStatusColor(
+                            status,
+                            isCurrent
+                          )}`}
+                        >
+                          {idx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <Button onClick={handleSubmitClick} className="w-full mt-4" size="lg" variant="destructive">
+                    Submit Test
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+            
+            <div className="flex-1 min-w-0">
+              <h2 className="font-semibold text-sm truncate">{testName}</h2>
+              <p className="text-xs text-muted-foreground">
+                Question {currentQuestionIndex + 1} of {questions.length}
+              </p>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-destructive/10 rounded-lg">
-              <Clock className="w-5 h-5 text-destructive" />
-              <span className="text-lg font-bold text-destructive">{formatTime(timeLeft)}</span>
+            
+            <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 rounded-lg shrink-0">
+              <Clock className="w-4 h-4 text-destructive" />
+              <span className="text-base font-bold text-destructive tabular-nums">{formatTime(timeLeft)}</span>
             </div>
           </div>
         </div>
@@ -334,14 +341,14 @@ const TestTaking = () => {
 
       {/* Scrollable Question Content */}
       <main className="flex-1 overflow-y-auto pb-24">
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          <Card className="border-2">
-            <CardHeader className="bg-muted/50">
+        <div className="max-w-4xl mx-auto px-4 py-6 h-full">
+          <Card className="border-2 flex flex-col max-h-full">
+            <CardHeader className="bg-muted/50 shrink-0">
               <CardTitle className="text-lg">
                 Q{currentQuestionIndex + 1}. {currentQuestion.question_text}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 overflow-y-auto flex-1">
               <RadioGroup
                 value={answers[currentQuestion.id] || ""}
                 onValueChange={handleAnswerSelect}
@@ -402,7 +409,7 @@ const TestTaking = () => {
               Previous
             </Button>
             {currentQuestionIndex === questions.length - 1 ? (
-              <Button onClick={handleSubmit} variant="default">
+              <Button onClick={handleSubmitClick} variant="default">
                 Submit Test
               </Button>
             ) : (
@@ -417,6 +424,40 @@ const TestTaking = () => {
           </div>
         </div>
       </div>
+
+      {/* Submit Confirmation Dialog */}
+      <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit Test?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>Are you sure you want to submit the test? You won't be able to change your answers after submission.</p>
+              <div className="grid grid-cols-2 gap-3 pt-3 text-sm">
+                <div className="p-3 rounded-lg bg-accent">
+                  <p className="text-muted-foreground">Total Questions</p>
+                  <p className="text-lg font-bold">{questions.length}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-accent">
+                  <p className="text-muted-foreground">Answered</p>
+                  <p className="text-lg font-bold text-green-600">{answeredCount}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-accent">
+                  <p className="text-muted-foreground">Not Answered</p>
+                  <p className="text-lg font-bold text-destructive">{notAnsweredCount}</p>
+                </div>
+                <div className="p-3 rounded-lg bg-accent">
+                  <p className="text-muted-foreground">Time Left</p>
+                  <p className="text-lg font-bold">{formatTime(timeLeft)}</p>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmit}>Submit Test</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

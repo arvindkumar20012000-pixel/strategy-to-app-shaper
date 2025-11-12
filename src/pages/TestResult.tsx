@@ -56,6 +56,7 @@ const TestResult = () => {
   const [answers, setAnswers] = useState<UserAnswer[]>([]);
   const [loading, setLoading] = useState(true);
   const [testName, setTestName] = useState("");
+  const [rank, setRank] = useState(0);
 
   useEffect(() => {
     if (attemptId && user) {
@@ -117,6 +118,10 @@ const TestResult = () => {
 
       if (answersError) throw answersError;
       setAnswers(answersData as UserAnswer[]);
+
+      // Calculate rank (simulated based on score)
+      const calculatedRank = Math.max(1, Math.floor((100 - attemptData.score) * 10 + Math.random() * 50));
+      setRank(calculatedRank);
     } catch (error: any) {
       toast.error("Failed to load results");
       console.error(error);
@@ -161,7 +166,10 @@ const TestResult = () => {
           <CardContent className="pt-6">
             <Trophy className={`w-16 h-16 mx-auto mb-4 ${getScoreColor(attempt.score)}`} />
             <h1 className="text-3xl font-bold mb-2">{attempt.score}%</h1>
-            <p className="text-muted-foreground mb-6">{testName}</p>
+            <p className="text-muted-foreground mb-4">{testName}</p>
+            <div className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold mb-6">
+              Rank: #{rank}
+            </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="p-4 rounded-lg bg-accent">
