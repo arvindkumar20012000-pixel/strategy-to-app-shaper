@@ -24,9 +24,11 @@ interface Article {
 const Index = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"today" | "week" | "month">("today");
   const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -88,6 +90,7 @@ const Index = () => {
         isBookmarked: bookmarkedIds.has(article.id),
       })) || [];
 
+      setAllArticles(articlesWithBookmarks);
       setArticles(articlesWithBookmarks);
     } catch (error: any) {
       toast.error("Failed to load articles");
@@ -149,9 +152,25 @@ const Index = () => {
     }
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setArticles(allArticles);
+      return;
+    }
+
+    const filtered = allArticles.filter(
+      (article) =>
+        article.title.toLowerCase().includes(query.toLowerCase()) ||
+        article.description?.toLowerCase().includes(query.toLowerCase()) ||
+        article.category.toLowerCase().includes(query.toLowerCase())
+    );
+    setArticles(filtered);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
-      <Header onMenuClick={() => setDrawerOpen(true)} />
+      <Header onMenuClick={() => setDrawerOpen(true)} onSearch={handleSearch} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <main className="max-w-screen-xl mx-auto px-4 py-6 w-full">

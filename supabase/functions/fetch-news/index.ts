@@ -16,53 +16,89 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { category = "education", language = "english" } = await req.json().catch(() => ({}));
+    const { language = "english" } = await req.json().catch(() => ({}));
 
-    console.log(`Generating educational news for category: ${category}`);
+    console.log(`Fetching fresh news for language: ${language}`);
 
-    // Use Lovable AI to generate educational news articles
+    // Get News API key from admin settings
+    const { data: apiKeyData } = await supabase
+      .from("admin_settings")
+      .select("value")
+      .eq("key", "NEWS_API_KEY")
+      .maybeSingle();
+
+    const NEWS_API_KEY = apiKeyData?.value;
+    if (!NEWS_API_KEY) {
+      throw new Error("NEWS_API_KEY not configured in admin settings");
+    }
+
+    // Use Lovable AI
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    const currentDate = new Date().toLocaleDateString('en-IN', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
+    // Clean old articles (older than 7 days)
+    const { error: cleanError } = await supabase.rpc("clean_old_articles");
+    if (cleanError) {
+      console.error("Error cleaning old articles:", cleanError);
+    } else {
+      console.log("Cleaned old articles");
+    }
+
+    // Fetch news from NewsAPI.org
+    const newsApiUrl = `https://newsapi.org/v2/top-headlines?country=in&category=general&pageSize=10&apiKey=${NEWS_API_KEY}`;
     
+    const newsResponse = await fetch(newsApiUrl);
+    if (!newsResponse.ok) {
+      throw new Error(`NewsAPI error: ${newsResponse.status}`);
+    }
+
+    const newsData = await newsResponse.json();
+    const newsArticles = newsData.articles || [];
+    
+    console.log(`Fetched ${newsArticles.length} news articles from NewsAPI`);
+
+    if (newsArticles.length === 0) {
+      throw new Error("No news articles fetched from NewsAPI");
+    }
+
+    // Prepare news for AI summarization
+    const newsContent = newsArticles
+      .map((article: any, idx: number) => 
+        `${idx + 1}. ${article.title}\n${article.description || ""}\n${article.content || ""}`
+      )
+      .join("\n\n");
+
     const languageInstruction = language === "hindi" 
-      ? "सभी लेख, शीर्षक, विवरण और सामग्री केवल हिंदी भाषा में लिखें। (Write ALL articles, titles, descriptions, and content in HINDI language only.)" 
+      ? "सभी लेख, शीर्षक, विवरण और सामग्री केवल हिंदी भाषा में लिखें। (Write ALL summaries, titles, descriptions, and content in HINDI language only.)" 
       : "Generate all content in English language.";
     
     const prompt = `${languageInstruction}
 
-Current Date: ${currentDate}
+I have the following latest news articles from today. Summarize and rewrite ONLY the 5 most relevant articles for competitive exam students in India (SSC, Railway, Banking, UPSC, State PSC, Defence exams).
 
-Generate 5 LATEST and MOST RECENT current affairs news articles from TODAY or THIS WEEK that are highly relevant for competitive exam preparation in India.
+Focus on:
+- Government policies and schemes
+- Economic decisions and budget updates
+- International relations and diplomacy
+- Constitutional appointments
+- Legal amendments
+- Education sector news
+- Employment and recruitment news
 
-Focus on BREAKING NEWS and RECENT UPDATES about:
-- Latest SSC exam notifications and updates (last 7 days)
-- Recent Railway recruitment announcements
-- Banking sector news and exam notifications
-- UPSC current affairs and recent policy updates
-- State PSC latest notifications
-- Defence recruitment recent announcements
-- Important government schemes launched THIS WEEK
-- Recent constitutional appointments (last few days)
-- Major economic and policy decisions from THIS WEEK
-- Latest amendments in laws and regulations
+News Articles:
+${newsContent}
 
-For each article, provide:
-- title: Catchy headline about the latest update (max 100 chars)
-- description: Brief summary of recent development (max 200 chars)
-- content: Detailed article covering who, what, when, where, why (3-4 paragraphs)
+For each of the 5 MOST RELEVANT articles, provide:
+- title: Clear exam-focused headline (max 100 chars)
+- description: Key points for exam preparation (max 200 chars)
+- content: Detailed summary with exam relevance, covering who, what, when, where, why (3-4 paragraphs)
 - source: "ExamPulse Current Affairs"
 
 Format as JSON array with keys: title, description, content, source
 
-IMPORTANT: Focus ONLY on news from the last 7 days. Make it feel fresh, urgent, and immediately relevant for exam preparation happening NOW.`;
+IMPORTANT: Only select articles that are directly relevant to competitive exam preparation. Skip entertainment, sports, or celebrity news.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -98,16 +134,16 @@ IMPORTANT: Focus ONLY on news from the last 7 days. Make it feel fresh, urgent, 
       articlesData = [];
     }
 
-    console.log(`Generated ${articlesData.length} articles`);
+    console.log(`Generated ${articlesData.length} summarized articles`);
 
     // Format articles for database
     const articles = articlesData.map((article: any, index: number) => ({
-      title: article.title || `Educational Update ${index + 1}`,
+      title: article.title || `Current Affairs Update ${index + 1}`,
       description: article.description || "",
       content: article.content || "",
-      source: article.source || "ExamPulse News",
+      source: article.source || "ExamPulse Current Affairs",
       image_url: null,
-      category: category,
+      category: "current-affairs",
       published_date: new Date().toISOString().split("T")[0],
     }));
 
