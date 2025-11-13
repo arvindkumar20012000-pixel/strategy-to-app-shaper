@@ -6,13 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2, Shield, FileText, Bell } from "lucide-react";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { ArticleManagement } from "@/components/admin/ArticleManagement";
 import { TestManagement } from "@/components/admin/TestManagement";
 import { ExamCategories } from "@/components/admin/ExamCategories";
 import { NCERTManagement } from "@/components/admin/NCERTManagement";
 import { NotificationManagement } from "@/components/admin/NotificationManagement";
+import { PreviousYearQuestions } from "@/components/admin/PreviousYearQuestions";
 
 export default function Admin() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -73,13 +74,20 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="settings">Settings</TabsTrigger>
             <TabsTrigger value="articles">Articles</TabsTrigger>
             <TabsTrigger value="tests">Tests</TabsTrigger>
             <TabsTrigger value="exams">Exam Types</TabsTrigger>
             <TabsTrigger value="ncert">NCERT</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="h-4 w-4 mr-2" />
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger value="previous-papers">
+              <FileText className="h-4 w-4 mr-2" />
+              PYQs
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="settings">
@@ -104,6 +112,10 @@ export default function Admin() {
 
           <TabsContent value="notifications">
             <NotificationManagement />
+          </TabsContent>
+
+          <TabsContent value="previous-papers">
+            <PreviousYearQuestions />
           </TabsContent>
         </Tabs>
       </main>
