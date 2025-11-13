@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Home,
   User,
@@ -24,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SideDrawerProps {
   isOpen: boolean;
@@ -61,6 +63,28 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, [user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    
+    try {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      setIsAdmin(!!data);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -113,6 +137,17 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
               {item.highlight && <Crown className="ml-auto w-4 h-4" />}
             </Button>
           ))}
+          
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 text-primary hover:text-primary"
+              onClick={() => handleNavigation("/admin")}
+            >
+              <Shield />
+              <span>Admin Panel</span>
+            </Button>
+          )}
         </div>
 
         <Separator className="my-4" />
