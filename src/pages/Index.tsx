@@ -5,7 +5,7 @@ import { SideDrawer } from "@/components/SideDrawer";
 import { ArticleCard } from "@/components/ArticleCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter } from "lucide-react";
+import { Filter, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -205,7 +205,7 @@ const Index = () => {
                 onClick={fetchFreshNews}
                 disabled={loading}
               >
-                <Filter className="w-4 h-4" />
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                 Refresh News
               </Button>
               <Button variant="outline" size="sm">
