@@ -29,14 +29,54 @@ const Index = () => {
   const [filter, setFilter] = useState<"today" | "week" | "month">("today");
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [banners, setBanners] = useState<any[]>([]);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   useEffect(() => {
     if (user) {
       fetchArticles();
-      // Fetch fresh news on component mount
-      fetchFreshNews();
+      fetchBanners();
+      checkAndFetchNews();
     }
   }, [user, filter]);
+
+  useEffect(() => {
+    if (banners.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [banners.length]);
+
+  const checkAndFetchNews = async () => {
+    const lastFetch = localStorage.getItem("lastNewsFetch");
+    const now = Date.now();
+    const twoHours = 2 * 60 * 60 * 1000;
+
+    if (!lastFetch || now - parseInt(lastFetch) > twoHours) {
+      await fetchFreshNews();
+      localStorage.setItem("lastNewsFetch", now.toString());
+    }
+  };
+
+  const fetchBanners = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("banners")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true })
+        .limit(3);
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setBanners(data);
+      }
+    } catch (error: any) {
+      console.error("Failed to load banners:", error);
+    }
+  };
 
   const fetchFreshNews = async () => {
     try {
@@ -47,13 +87,25 @@ const Index = () => {
       if (error) throw error;
       
       if (data?.success) {
-        console.log(`Fetched ${data.articlesCount} new articles`);
-        // Refresh the articles list
+        toast.success(`Fetched ${data.articlesCount} new articles`);
         fetchArticles();
       }
     } catch (error: any) {
       console.error("Error fetching news:", error);
+      toast.error("Failed to fetch fresh news");
     }
+  };
+
+  const handleManualRefresh = async () => {
+    setLoading(true);
+    await fetchFreshNews();
+    localStorage.setItem("lastNewsFetch", Date.now().toString());
+    setLoading(false);
+  };
+
+  const getBannerImageUrl = (path: string) => {
+    const { data } = supabase.storage.from("banners").getPublicUrl(path);
+    return data.publicUrl;
   };
 
   const fetchArticles = async () => {
@@ -174,17 +226,45 @@ const Index = () => {
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <main className="max-w-screen-xl mx-auto px-4 py-6 w-full">
-        <div
-          className="rounded-2xl overflow-hidden mb-6 h-48 relative bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroBanner})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-primary opacity-90" />
-          <div className="relative h-full flex flex-col justify-center items-center text-white text-center p-6">
-            <h2 className="text-3xl font-bold mb-2">Welcome to ExamPulse</h2>
-            <p className="text-white/90 max-w-md">
-              Your daily dose of current affairs and exam preparation
-            </p>
-          </div>
+        {/* Hero Banner Carousel */}
+        <div className="mb-6 rounded-lg overflow-hidden relative">
+          {banners.length > 0 ? (
+            <>
+              <img
+                src={getBannerImageUrl(banners[currentBannerIndex].image_path)}
+                alt={banners[currentBannerIndex].title}
+                className="w-full h-48 object-cover transition-opacity duration-500"
+              />
+              {banners.length > 1 && (
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
+                  {banners.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentBannerIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        index === currentBannerIndex
+                          ? "bg-white w-4"
+                          : "bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div
+              className="rounded-2xl overflow-hidden h-48 relative bg-cover bg-center"
+              style={{ backgroundImage: `url(${heroBanner})` }}
+            >
+              <div className="absolute inset-0 bg-gradient-primary opacity-90" />
+              <div className="relative h-full flex flex-col justify-center items-center text-white text-center p-6">
+                <h2 className="text-3xl font-bold mb-2">Welcome to ExamPulse</h2>
+                <p className="text-white/90 max-w-md">
+                  Your daily dose of current affairs and exam preparation
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <Tabs
@@ -202,7 +282,7 @@ const Index = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={fetchFreshNews}
+                onClick={handleManualRefresh}
                 disabled={loading}
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />

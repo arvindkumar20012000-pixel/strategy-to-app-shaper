@@ -25,7 +25,7 @@ export function ArticleManagement() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [language, setLanguage] = useState("english");
 
   useEffect(() => {
@@ -67,6 +67,17 @@ export function ArticleManagement() {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image must be less than 5MB");
+        return;
+      }
+      setImageFile(file);
+    }
+  };
+
   const handleAddArticle = async () => {
     if (!title || !description || !category) {
       toast.error("Please fill in all required fields");
@@ -75,11 +86,32 @@ export function ArticleManagement() {
 
     setLoading(true);
     try {
+      let imageUrl = null;
+
+      // Upload image if provided
+      if (imageFile) {
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("article-images")
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from("article-images")
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      }
+
       const { error } = await supabase.from("articles").insert({
         title,
         description,
         category,
-        image_url: imageUrl || null,
+        image_url: imageUrl,
         published_date: new Date().toISOString().split("T")[0],
       });
 
@@ -89,7 +121,7 @@ export function ArticleManagement() {
       setTitle("");
       setDescription("");
       setCategory("");
-      setImageUrl("");
+      setImageFile(null);
       await fetchArticles();
     } catch (error: any) {
       toast.error("Failed to add article: " + error.message);
@@ -166,13 +198,19 @@ export function ArticleManagement() {
             />
           </div>
           <div>
-            <Label htmlFor="image-url">Image URL (optional)</Label>
+            <Label htmlFor="imageFile">Article Image (optional, Max 5MB)</Label>
             <Input
-              id="image-url"
-              placeholder="https://example.com/image.jpg"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
+              id="imageFile"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={loading}
             />
+            {imageFile && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Selected: {imageFile.name}
+              </p>
+            )}
           </div>
           <Button onClick={handleAddArticle} disabled={loading} className="w-full">
             Add Article

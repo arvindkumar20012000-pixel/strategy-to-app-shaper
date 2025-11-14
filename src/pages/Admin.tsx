@@ -14,6 +14,7 @@ import { ExamCategories } from "@/components/admin/ExamCategories";
 import { NCERTManagement } from "@/components/admin/NCERTManagement";
 import { NotificationManagement } from "@/components/admin/NotificationManagement";
 import { PreviousYearQuestions } from "@/components/admin/PreviousYearQuestions";
+import { BannerManagement } from "@/components/admin/BannerManagement";
 
 export default function Admin() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -74,8 +75,9 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="banners">Banners</TabsTrigger>
             <TabsTrigger value="articles">Articles</TabsTrigger>
             <TabsTrigger value="tests">Tests</TabsTrigger>
             <TabsTrigger value="exams">Exam Types</TabsTrigger>
@@ -92,6 +94,10 @@ export default function Admin() {
 
           <TabsContent value="settings">
             <AdminSettings />
+          </TabsContent>
+
+          <TabsContent value="banners">
+            <BannerManagement />
           </TabsContent>
 
           <TabsContent value="articles">
