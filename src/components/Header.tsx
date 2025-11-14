@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Search, Bell, Menu, X } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { NotificationsDialog } from "@/components/NotificationsDialog";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -57,10 +58,7 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
                 <Search className="w-5 h-5" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary rounded-full" />
-            </Button>
+            <NotificationsDialog />
           </div>
         </div>
       </header>

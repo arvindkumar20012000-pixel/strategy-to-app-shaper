@@ -255,38 +255,83 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean
+          message: string
+          target_audience: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          message: string
+          target_audience?: string
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          message?: string
+          target_audience?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       previous_papers: {
         Row: {
+          answer: string | null
           created_at: string | null
           difficulty: string | null
           duration_minutes: number
           exam_type: string
+          explanation: string | null
           id: string
+          image_path: string | null
           paper_name: string
           pdf_url: string | null
           questions_count: number
+          updated_at: string | null
           year: number
         }
         Insert: {
+          answer?: string | null
           created_at?: string | null
           difficulty?: string | null
           duration_minutes?: number
           exam_type: string
+          explanation?: string | null
           id?: string
+          image_path?: string | null
           paper_name: string
           pdf_url?: string | null
           questions_count?: number
+          updated_at?: string | null
           year: number
         }
         Update: {
+          answer?: string | null
           created_at?: string | null
           difficulty?: string | null
           duration_minutes?: number
           exam_type?: string
+          explanation?: string | null
           id?: string
+          image_path?: string | null
           paper_name?: string
           pdf_url?: string | null
           questions_count?: number
+          updated_at?: string | null
           year?: number
         }
         Relationships: []
@@ -639,6 +684,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clean_old_articles: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
