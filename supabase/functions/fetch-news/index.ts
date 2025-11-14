@@ -47,19 +47,55 @@ serve(async (req) => {
     }
 
     // Fetch news from NewsAPI.org - ONLY source for articles
-    const newsApiUrl = `https://newsapi.org/v2/top-headlines?country=in&pageSize=10&apiKey=${NEWS_API_KEY}`;
+    let newsArticles: any[] = [];
+    let newsApiError: string | null = null;
     
-    const newsResponse = await fetch(newsApiUrl);
+    // Try multiple NewsAPI endpoints to get articles
+    const newsApiQueries = [
+      // Try general India news
+      `https://newsapi.org/v2/top-headlines?country=in&pageSize=10&apiKey=${NEWS_API_KEY}`,
+      // Try without country but with India-related keywords
+      `https://newsapi.org/v2/everything?q=India+government+policy+economy&language=en&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
+      // Try global top headlines
+      `https://newsapi.org/v2/top-headlines?pageSize=10&apiKey=${NEWS_API_KEY}`,
+    ];
     
-    if (!newsResponse.ok) {
-      throw new Error(`NewsAPI returned status: ${newsResponse.status}`);
+    for (const apiUrl of newsApiQueries) {
+      try {
+        console.log(`Trying NewsAPI endpoint: ${apiUrl.split('?')[0]}`);
+        const newsResponse = await fetch(apiUrl);
+        
+        if (!newsResponse.ok) {
+          const errorText = await newsResponse.text();
+          console.log(`NewsAPI returned status ${newsResponse.status}: ${errorText}`);
+          continue;
+        }
+        
+        const newsData = await newsResponse.json();
+        console.log(`NewsAPI response:`, JSON.stringify(newsData).substring(0, 200));
+        
+        if (newsData.status === "error") {
+          console.log(`NewsAPI error: ${newsData.message || newsData.code}`);
+          newsApiError = newsData.message || newsData.code;
+          continue;
+        }
+        
+        newsArticles = newsData.articles || [];
+        
+        if (newsArticles.length > 0) {
+          console.log(`Successfully fetched ${newsArticles.length} articles from NewsAPI`);
+          break;
+        }
+      } catch (error: any) {
+        console.log(`Error with NewsAPI endpoint: ${error.message || error}`);
+      }
     }
     
-    const newsData = await newsResponse.json();
-    const newsArticles = newsData.articles || [];
-    
     if (newsArticles.length === 0) {
-      throw new Error("No articles returned from NewsAPI");
+      const errorMsg = newsApiError 
+        ? `NewsAPI error: ${newsApiError}. Please check your API key in admin settings.`
+        : "No articles available from NewsAPI. Please try again later or check your API key.";
+      throw new Error(errorMsg);
     }
     
     console.log(`Fetched ${newsArticles.length} news articles from NewsAPI`);
