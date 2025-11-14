@@ -26,7 +26,7 @@ export function NCERTManagement() {
   const [chapterNumber, setChapterNumber] = useState("");
   const [chapterName, setChapterName] = useState("");
   const [pages, setPages] = useState("");
-  const [pdfUrl, setPdfUrl] = useState("");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchContent();
@@ -58,13 +58,36 @@ export function NCERTManagement() {
 
     setLoading(true);
     try {
+      let pdfUrl = null;
+
+      // Upload PDF if provided
+      if (pdfFile) {
+        const fileExt = pdfFile.name.split(".").pop();
+        const fileName = `${Date.now()}_class${classNumber}_ch${chapterNumber}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("ncert-pdfs")
+          .upload(filePath, pdfFile, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("ncert-pdfs")
+          .getPublicUrl(filePath);
+        pdfUrl = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from("ncert_content").insert({
         class_number: parseInt(classNumber),
         subject,
         chapter_number: parseInt(chapterNumber),
         chapter_name: chapterName,
         pages: pages ? parseInt(pages) : null,
-        pdf_url: pdfUrl || null,
+        pdf_url: pdfUrl,
       });
 
       if (error) throw error;
@@ -75,7 +98,7 @@ export function NCERTManagement() {
       setChapterNumber("");
       setChapterName("");
       setPages("");
-      setPdfUrl("");
+      setPdfFile(null);
       await fetchContent();
     } catch (error: any) {
       toast.error("Failed to add content: " + error.message);
@@ -154,13 +177,18 @@ export function NCERTManagement() {
             />
           </div>
           <div>
-            <Label htmlFor="pdf-url">PDF URL (optional)</Label>
+            <Label htmlFor="pdf-file">PDF File (optional)</Label>
             <Input
-              id="pdf-url"
-              placeholder="https://example.com/ncert.pdf"
-              value={pdfUrl}
-              onChange={(e) => setPdfUrl(e.target.value)}
+              id="pdf-file"
+              type="file"
+              accept=".pdf"
+              onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
             />
+            {pdfFile && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Selected: {pdfFile.name}
+              </p>
+            )}
           </div>
         </div>
         <Button onClick={handleAddContent} disabled={loading} className="w-full">

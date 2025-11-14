@@ -10,6 +10,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import heroBanner from "@/assets/hero-banner.jpg";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Article {
   id: string;
@@ -31,6 +37,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [banners, setBanners] = useState<any[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -206,19 +213,47 @@ const Index = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (!query.trim()) {
-      setArticles(allArticles);
-      return;
+    applyFilters(allArticles, query, selectedCategories);
+  };
+
+  const handleCategoryToggle = (category: string) => {
+    const newCategories = selectedCategories.includes(category)
+      ? selectedCategories.filter((c) => c !== category)
+      : [...selectedCategories, category];
+    setSelectedCategories(newCategories);
+    applyFilters(allArticles, searchQuery, newCategories);
+  };
+
+  const applyFilters = (
+    articlesList: Article[],
+    query: string,
+    categories: string[]
+  ) => {
+    let filtered = articlesList;
+
+    // Apply search filter
+    if (query.trim()) {
+      filtered = filtered.filter(
+        (article) =>
+          article.title.toLowerCase().includes(query.toLowerCase()) ||
+          article.description?.toLowerCase().includes(query.toLowerCase()) ||
+          article.category.toLowerCase().includes(query.toLowerCase())
+      );
     }
 
-    const filtered = allArticles.filter(
-      (article) =>
-        article.title.toLowerCase().includes(query.toLowerCase()) ||
-        article.description?.toLowerCase().includes(query.toLowerCase()) ||
-        article.category.toLowerCase().includes(query.toLowerCase())
-    );
+    // Apply category filter
+    if (categories.length > 0) {
+      filtered = filtered.filter((article) =>
+        categories.includes(article.category)
+      );
+    }
+
     setArticles(filtered);
   };
+
+  const uniqueCategories = Array.from(
+    new Set(allArticles.map((article) => article.category))
+  );
 
   return (
     <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
@@ -281,17 +316,31 @@ const Index = () => {
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
-                size="sm"
+                size="icon"
                 onClick={handleManualRefresh}
                 disabled={loading}
+                title="Refresh News"
               >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh News
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4" />
-                Filter
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" title="Filter by Category">
+                    <Filter className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {uniqueCategories.map((category) => (
+                    <DropdownMenuCheckboxItem
+                      key={category}
+                      checked={selectedCategories.includes(category)}
+                      onCheckedChange={() => handleCategoryToggle(category)}
+                    >
+                      {category}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
