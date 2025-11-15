@@ -38,14 +38,20 @@ const Index = () => {
   const [banners, setBanners] = useState<any[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<"english" | "hindi" | "all">("all");
 
   useEffect(() => {
     if (user) {
       fetchArticles();
       fetchBanners();
+    }
+  }, [user, filter, selectedLanguage]);
+
+  useEffect(() => {
+    if (user) {
       checkAndFetchNews();
     }
-  }, [user, filter]);
+  }, [user]);
 
   useEffect(() => {
     if (banners.length > 1) {
@@ -57,13 +63,21 @@ const Index = () => {
   }, [banners.length]);
 
   const checkAndFetchNews = async () => {
-    const lastFetch = localStorage.getItem("lastNewsFetch");
+    const lastFetchEnglish = localStorage.getItem("lastNewsFetch_english");
+    const lastFetchHindi = localStorage.getItem("lastNewsFetch_hindi");
     const now = Date.now();
     const twoHours = 2 * 60 * 60 * 1000;
 
-    if (!lastFetch || now - parseInt(lastFetch) > twoHours) {
-      await fetchFreshNews();
-      localStorage.setItem("lastNewsFetch", now.toString());
+    // Fetch English news if needed
+    if (!lastFetchEnglish || now - parseInt(lastFetchEnglish) > twoHours) {
+      await fetchFreshNews("english");
+      localStorage.setItem("lastNewsFetch_english", now.toString());
+    }
+
+    // Fetch Hindi news if needed
+    if (!lastFetchHindi || now - parseInt(lastFetchHindi) > twoHours) {
+      await fetchFreshNews("hindi");
+      localStorage.setItem("lastNewsFetch_hindi", now.toString());
     }
   };
 
@@ -85,28 +99,36 @@ const Index = () => {
     }
   };
 
-  const fetchFreshNews = async () => {
+  const fetchFreshNews = async (language: "english" | "hindi") => {
     try {
       const { data, error } = await supabase.functions.invoke("fetch-news", {
-        body: { category: "general", country: "in" },
+        body: { language },
       });
 
       if (error) throw error;
       
       if (data?.success) {
-        toast.success(`Fetched ${data.articlesCount} new articles`);
+        toast.success(`Fetched ${data.articlesCount} new ${language} articles`);
         fetchArticles();
       }
     } catch (error: any) {
       console.error("Error fetching news:", error);
-      toast.error("Failed to fetch fresh news");
+      toast.error(`Failed to fetch ${language} news`);
     }
   };
 
   const handleManualRefresh = async () => {
     setLoading(true);
-    await fetchFreshNews();
-    localStorage.setItem("lastNewsFetch", Date.now().toString());
+    const now = Date.now().toString();
+    
+    // Fetch both English and Hindi news
+    await Promise.all([
+      fetchFreshNews("english"),
+      fetchFreshNews("hindi")
+    ]);
+    
+    localStorage.setItem("lastNewsFetch_english", now);
+    localStorage.setItem("lastNewsFetch_hindi", now);
     setLoading(false);
   };
 
@@ -213,7 +235,7 @@ const Index = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    applyFilters(allArticles, query, selectedCategories);
+    applyFilters(allArticles, query, selectedCategories, selectedLanguage);
   };
 
   const handleCategoryToggle = (category: string) => {
@@ -221,13 +243,19 @@ const Index = () => {
       ? selectedCategories.filter((c) => c !== category)
       : [...selectedCategories, category];
     setSelectedCategories(newCategories);
-    applyFilters(allArticles, searchQuery, newCategories);
+    applyFilters(allArticles, searchQuery, newCategories, selectedLanguage);
+  };
+
+  const handleLanguageChange = (lang: "english" | "hindi" | "all") => {
+    setSelectedLanguage(lang);
+    applyFilters(allArticles, searchQuery, selectedCategories, lang);
   };
 
   const applyFilters = (
     articlesList: Article[],
     query: string,
-    categories: string[]
+    categories: string[],
+    language: "english" | "hindi" | "all"
   ) => {
     let filtered = articlesList;
 
@@ -245,6 +273,13 @@ const Index = () => {
     if (categories.length > 0) {
       filtered = filtered.filter((article) =>
         categories.includes(article.category)
+      );
+    }
+
+    // Apply language filter
+    if (language !== "all") {
+      filtered = filtered.filter((article: any) =>
+        article.language === language
       );
     }
 
@@ -314,6 +349,33 @@ const Index = () => {
               <TabsTrigger value="month">30 Days</TabsTrigger>
             </TabsList>
             <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    {selectedLanguage === "all" ? "All Languages" : selectedLanguage === "english" ? "English" : "हिंदी"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36">
+                  <DropdownMenuCheckboxItem
+                    checked={selectedLanguage === "all"}
+                    onCheckedChange={() => handleLanguageChange("all")}
+                  >
+                    All Languages
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={selectedLanguage === "english"}
+                    onCheckedChange={() => handleLanguageChange("english")}
+                  >
+                    English
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={selectedLanguage === "hindi"}
+                    onCheckedChange={() => handleLanguageChange("hindi")}
+                  >
+                    हिंदी
+                  </DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button 
                 variant="outline" 
                 size="icon"
