@@ -50,15 +50,25 @@ serve(async (req) => {
     let newsArticles: any[] = [];
     let newsApiError: string | null = null;
     
+    // Determine language parameter for NewsAPI
+    const newsApiLanguage = language === "hindi" ? "hi" : "en";
+    
     // Try multiple NewsAPI endpoints to get articles
-    const newsApiQueries = [
-      // Try general India news
-      `https://newsapi.org/v2/top-headlines?country=in&pageSize=10&apiKey=${NEWS_API_KEY}`,
-      // Try without country but with India-related keywords
-      `https://newsapi.org/v2/everything?q=India+government+policy+economy&language=en&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
-      // Try global top headlines
-      `https://newsapi.org/v2/top-headlines?pageSize=10&apiKey=${NEWS_API_KEY}`,
-    ];
+    const newsApiQueries = language === "hindi" 
+      ? [
+          // Hindi news from India
+          `https://newsapi.org/v2/top-headlines?country=in&language=hi&pageSize=10&apiKey=${NEWS_API_KEY}`,
+          // Hindi news with India-related keywords
+          `https://newsapi.org/v2/everything?q=भारत+सरकार+नीति&language=hi&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
+        ]
+      : [
+          // English news from India
+          `https://newsapi.org/v2/top-headlines?country=in&language=en&pageSize=10&apiKey=${NEWS_API_KEY}`,
+          // English news with India-related keywords
+          `https://newsapi.org/v2/everything?q=India+government+policy+economy&language=en&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
+          // Global top headlines
+          `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey=${NEWS_API_KEY}`,
+        ];
     
     for (const apiUrl of newsApiQueries) {
       try {
@@ -197,6 +207,7 @@ Return ALL 10 articles, sorted by relevance to competitive exams (most relevant 
         image_url: originalArticle.image_url || null,
         category: "current-affairs",
         published_date: new Date().toISOString().split("T")[0],
+        language: language,
       };
     });
 
