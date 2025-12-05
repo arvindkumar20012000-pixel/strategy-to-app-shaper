@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BookOpen, Plus, Loader2, Trash2 } from "lucide-react";
@@ -16,6 +17,23 @@ interface NCERTContent {
   pages: number | null;
   pdf_url: string | null;
 }
+
+const SUBJECTS = [
+  "Mathematics",
+  "Science",
+  "Social Science",
+  "English",
+  "Hindi",
+  "Physics",
+  "Chemistry",
+  "Biology",
+  "History",
+  "Geography",
+  "Political Science",
+  "Economics",
+];
+
+const CLASSES = ["6", "7", "8", "9", "10", "11", "12"];
 
 export function NCERTManagement() {
   const [content, setContent] = useState<NCERTContent[]>([]);
@@ -99,6 +117,9 @@ export function NCERTManagement() {
       setChapterName("");
       setPages("");
       setPdfFile(null);
+      // Reset file input
+      const fileInput = document.getElementById("pdf-file") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
       await fetchContent();
     } catch (error: any) {
       toast.error("Failed to add content: " + error.message);
@@ -130,22 +151,33 @@ export function NCERTManagement() {
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <div>
             <Label htmlFor="class">Class</Label>
-            <Input
-              id="class"
-              type="number"
-              placeholder="e.g., 10"
-              value={classNumber}
-              onChange={(e) => setClassNumber(e.target.value)}
-            />
+            <Select value={classNumber} onValueChange={setClassNumber}>
+              <SelectTrigger id="class">
+                <SelectValue placeholder="Select Class" />
+              </SelectTrigger>
+              <SelectContent>
+                {CLASSES.map((cls) => (
+                  <SelectItem key={cls} value={cls}>
+                    Class {cls}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="subject">Subject</Label>
-            <Input
-              id="subject"
-              placeholder="e.g., Mathematics"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-            />
+            <Select value={subject} onValueChange={setSubject}>
+              <SelectTrigger id="subject">
+                <SelectValue placeholder="Select Subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUBJECTS.map((subj) => (
+                  <SelectItem key={subj} value={subj}>
+                    {subj}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="chapter-number">Chapter Number</Label>
@@ -192,7 +224,7 @@ export function NCERTManagement() {
           </div>
         </div>
         <Button onClick={handleAddContent} disabled={loading} className="w-full">
-          <Plus className="w-4 h-4 mr-2" />
+          {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
           Add NCERT Content
         </Button>
       </Card>
@@ -210,12 +242,13 @@ export function NCERTManagement() {
                 key={item.id}
                 className="flex items-center justify-between p-3 bg-muted rounded-lg"
               >
-                <div className="flex-1">
-                  <h4 className="font-medium">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium truncate">
                     Class {item.class_number} - {item.subject}
                   </h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground truncate">
                     Chapter {item.chapter_number}: {item.chapter_name}
+                    {item.pdf_url && " • PDF attached"}
                   </p>
                 </div>
                 <Button
