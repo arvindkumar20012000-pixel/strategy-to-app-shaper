@@ -1,10 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { SideDrawer } from "@/components/SideDrawer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -12,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Clock, ChevronLeft, ChevronRight, Menu, Grid3x3 } from "lucide-react";
+import { Clock, ChevronLeft, ChevronRight, Grid3x3, Pause, Play } from "lucide-react";
 
 interface Question {
   id: string;
@@ -25,13 +22,25 @@ interface Question {
   explanation: string | null;
 }
 
+interface PausedTestState {
+  attemptId: string;
+  testId: string;
+  type: string;
+  answers: Record<string, string>;
+  markedForReview: string[];
+  currentQuestionIndex: number;
+  timeLeft: number;
+}
+
 const TestTaking = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type"); // 'test' or 'paper'
+  const resumeAttemptId = searchParams.get("resume");
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -45,20 +54,115 @@ const TestTaking = () => {
   const [testName, setTestName] = useState("");
   const [totalTime, setTotalTime] = useState(0);
 
+  // Prevent navigation away
   useEffect(() => {
-    if (id && user) {
-      fetchTestData();
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isPaused && questions.length > 0) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isPaused, questions.length]);
+
+  // Enter fullscreen on mount
+  useEffect(() => {
+    const enterFullscreen = async () => {
+      try {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch (error) {
+        console.log("Fullscreen not supported or denied");
+      }
+    };
+    
+    if (!loading && questions.length > 0) {
+      enterFullscreen();
     }
-  }, [id, user, type]);
+  }, [loading, questions.length]);
 
   useEffect(() => {
-    if (timeLeft > 0) {
+    if (id && user) {
+      if (resumeAttemptId) {
+        resumeTest();
+      } else {
+        fetchTestData();
+      }
+    }
+  }, [id, user, type, resumeAttemptId]);
+
+  useEffect(() => {
+    if (timeLeft > 0 && !isPaused) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && questions.length > 0) {
+    } else if (timeLeft === 0 && questions.length > 0 && !loading) {
       handleSubmit();
     }
-  }, [timeLeft]);
+  }, [timeLeft, isPaused]);
+
+  const resumeTest = async () => {
+    if (!user || !id || !resumeAttemptId) return;
+
+    setLoading(true);
+    try {
+      // Get saved state from localStorage
+      const savedState = localStorage.getItem(`paused_test_${resumeAttemptId}`);
+      if (!savedState) {
+        toast.error("Could not find saved test state");
+        navigate("/mock-test");
+        return;
+      }
+
+      const pausedState: PausedTestState = JSON.parse(savedState);
+      
+      // Fetch test details
+      const table = type === "paper" ? "previous_papers" : "mock_tests";
+      const { data: testData, error: testError } = await supabase
+        .from(table)
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (testError) throw testError;
+
+      const name = type === "paper" 
+        ? (testData as any).paper_name 
+        : (testData as any).title;
+      
+      setTestName(name);
+      setTotalTime(testData.duration_minutes * 60);
+
+      // Fetch questions
+      const column = type === "paper" ? "paper_id" : "test_id";
+      const { data: questionsData, error: questionsError } = await supabase
+        .from("questions")
+        .select("*")
+        .eq(column, id);
+
+      if (questionsError) throw questionsError;
+
+      setQuestions(questionsData || []);
+      setAttemptId(pausedState.attemptId);
+      setAnswers(pausedState.answers);
+      setMarkedForReview(new Set(pausedState.markedForReview));
+      setCurrentQuestionIndex(pausedState.currentQuestionIndex);
+      setTimeLeft(pausedState.timeLeft);
+      
+      // Clear saved state
+      localStorage.removeItem(`paused_test_${resumeAttemptId}`);
+      
+      toast.success("Test resumed!");
+    } catch (error: any) {
+      toast.error("Failed to resume test");
+      console.error(error);
+      navigate("/mock-test");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchTestData = async () => {
     if (!user || !id) return;
@@ -166,6 +270,43 @@ const TestTaking = () => {
     }
   };
 
+  const handlePauseClick = () => {
+    setPauseDialogOpen(true);
+  };
+
+  const handlePauseTest = () => {
+    setIsPaused(true);
+    setPauseDialogOpen(false);
+    
+    // Save state to localStorage
+    const pausedState: PausedTestState = {
+      attemptId,
+      testId: id!,
+      type: type!,
+      answers,
+      markedForReview: Array.from(markedForReview),
+      currentQuestionIndex,
+      timeLeft,
+    };
+    localStorage.setItem(`paused_test_${attemptId}`, JSON.stringify(pausedState));
+    
+    // Exit fullscreen
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+    
+    toast.success("Test paused! You can resume later from Mock Tests.");
+    navigate("/mock-test");
+  };
+
+  const handleResumeTest = () => {
+    setIsPaused(false);
+    // Re-enter fullscreen
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  };
+
   const handleSubmitClick = () => {
     setSubmitDialogOpen(true);
   };
@@ -218,6 +359,11 @@ const TestTaking = () => {
 
       if (updateError) throw updateError;
 
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+
       toast.success("Test submitted successfully!");
       navigate(`/test-result/${attemptId}`);
     } catch (error: any) {
@@ -251,22 +397,19 @@ const TestTaking = () => {
   const notAnsweredCount = questions.length - answeredCount;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header onMenuClick={() => setDrawerOpen(true)} showSearch={false} />
-      <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
-
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       {/* Fixed Header with Timer and Navigation */}
       <div className="sticky top-0 z-10 bg-background border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-2">
             <Sheet open={paletteOpen} onOpenChange={setPaletteOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="shrink-0">
-                  <Grid3x3 className="w-4 h-4 mr-2" />
-                  Questions
+                  <Grid3x3 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Questions</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[400px] sm:w-[540px] overflow-y-auto">
+              <SheetContent side="left" className="w-[320px] sm:w-[400px] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>Question Palette</SheetTitle>
                 </SheetHeader>
@@ -325,31 +468,42 @@ const TestTaking = () => {
               </SheetContent>
             </Sheet>
             
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-center">
               <h2 className="font-semibold text-sm truncate">{testName}</h2>
               <p className="text-xs text-muted-foreground">
-                Question {currentQuestionIndex + 1} of {questions.length}
+                Q {currentQuestionIndex + 1}/{questions.length}
               </p>
             </div>
             
-            <div className="flex items-center gap-2 px-3 py-2 bg-destructive/10 rounded-lg shrink-0">
-              <Clock className="w-4 h-4 text-destructive" />
-              <span className="text-base font-bold text-destructive tabular-nums">{formatTime(timeLeft)}</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePauseClick}
+                className="shrink-0"
+              >
+                <Pause className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Pause</span>
+              </Button>
+              <div className="flex items-center gap-1 px-2 py-1 bg-destructive/10 rounded-lg">
+                <Clock className="w-4 h-4 text-destructive" />
+                <span className="text-sm font-bold text-destructive tabular-nums">{formatTime(timeLeft)}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Scrollable Question Content */}
-      <main className="flex-1 overflow-y-auto pb-24">
-        <div className="max-w-4xl mx-auto px-4 py-6 h-full">
-          <Card className="border-2 flex flex-col max-h-full">
-            <CardHeader className="bg-muted/50 shrink-0">
-              <CardTitle className="text-lg">
+      <main className="flex-1 overflow-y-auto pb-28">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <Card className="border-2">
+            <CardHeader className="bg-muted/50">
+              <CardTitle className="text-base sm:text-lg break-words">
                 Q{currentQuestionIndex + 1}. {currentQuestion.question_text}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6 overflow-y-auto flex-1">
+            <CardContent className="pt-6">
               <RadioGroup
                 value={answers[currentQuestion.id] || ""}
                 onValueChange={handleAnswerSelect}
@@ -358,16 +512,16 @@ const TestTaking = () => {
                 {["a", "b", "c", "d"].map((option) => (
                   <div
                     key={option}
-                    className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                    className={`flex items-start space-x-3 p-3 sm:p-4 rounded-lg border-2 transition-all cursor-pointer ${
                       answers[currentQuestion.id] === option
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/50 hover:bg-accent"
                     }`}
                   >
-                    <RadioGroupItem value={option} id={`option-${option}`} />
+                    <RadioGroupItem value={option} id={`option-${option}`} className="mt-1" />
                     <Label
                       htmlFor={`option-${option}`}
-                      className="flex-1 cursor-pointer font-medium"
+                      className="flex-1 cursor-pointer font-medium break-words"
                     >
                       <span className="font-bold mr-2">{option.toUpperCase()}.</span>
                       {currentQuestion[`option_${option}` as keyof Question]}
@@ -382,17 +536,20 @@ const TestTaking = () => {
 
       {/* Fixed Bottom Action Buttons */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t shadow-lg z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="grid grid-cols-4 gap-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={toggleMarkForReview}
-              className={markedForReview.has(currentQuestion.id) ? "bg-purple-500 text-white hover:bg-purple-600 hover:text-white" : ""}
+              className={`text-xs sm:text-sm ${markedForReview.has(currentQuestion.id) ? "bg-purple-500 text-white hover:bg-purple-600 hover:text-white" : ""}`}
             >
               {markedForReview.has(currentQuestion.id) ? "Unmark" : "Mark"}
             </Button>
             <Button
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
               onClick={() => {
                 const newAnswers = { ...answers };
                 delete newAnswers[currentQuestion.id];
@@ -403,32 +560,62 @@ const TestTaking = () => {
             </Button>
             <Button
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
               onClick={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
               disabled={currentQuestionIndex === 0}
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Previous
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">Prev</span>
             </Button>
             {currentQuestionIndex === questions.length - 1 ? (
-              <Button onClick={handleSubmitClick} variant="default">
-                Submit Test
+              <Button onClick={handleSubmitClick} variant="default" size="sm" className="text-xs sm:text-sm">
+                Submit
               </Button>
             ) : (
               <Button
                 onClick={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
                 variant="default"
+                size="sm"
+                className="text-xs sm:text-sm"
               >
-                Save & Next
-                <ChevronRight className="w-4 h-4 ml-1" />
+                <span className="hidden sm:inline mr-1">Next</span>
+                <ChevronRight className="w-4 h-4" />
               </Button>
             )}
           </div>
         </div>
       </div>
 
+      {/* Pause Confirmation Dialog */}
+      <AlertDialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
+        <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pause Test?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your progress will be saved. You can resume this test later from the Mock Tests page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="grid grid-cols-2 gap-3 pt-3 text-sm">
+            <div className="p-3 rounded-lg bg-accent">
+              <p className="text-muted-foreground">Answered</p>
+              <p className="text-lg font-bold text-green-600">{answeredCount}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-accent">
+              <p className="text-muted-foreground">Time Left</p>
+              <p className="text-lg font-bold">{formatTime(timeLeft)}</p>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continue Test</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePauseTest}>Pause & Exit</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Submit Confirmation Dialog */}
       <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Submit Test?</AlertDialogTitle>
             <AlertDialogDescription>

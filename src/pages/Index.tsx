@@ -24,6 +24,7 @@ interface Article {
   category: string;
   published_date: string;
   image_url: string | null;
+  language?: string | null;
   isBookmarked?: boolean;
 }
 
@@ -38,7 +39,7 @@ const Index = () => {
   const [banners, setBanners] = useState<any[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<"english" | "hindi" | "all">("all");
+  const [selectedLanguage, setSelectedLanguage] = useState<"english" | "hindi">("english");
 
   useEffect(() => {
     if (user) {
@@ -121,14 +122,9 @@ const Index = () => {
     setLoading(true);
     const now = Date.now().toString();
     
-    // Fetch both English and Hindi news
-    await Promise.all([
-      fetchFreshNews("english"),
-      fetchFreshNews("hindi")
-    ]);
-    
-    localStorage.setItem("lastNewsFetch_english", now);
-    localStorage.setItem("lastNewsFetch_hindi", now);
+    // Fetch news for selected language only
+    await fetchFreshNews(selectedLanguage);
+    localStorage.setItem(`lastNewsFetch_${selectedLanguage}`, now);
     setLoading(false);
   };
 
@@ -146,11 +142,16 @@ const Index = () => {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
 
-      const { data: articlesData, error: articlesError } = await supabase
+      let query = supabase
         .from("articles")
         .select("*")
         .gte("published_date", startDate.toISOString().split("T")[0])
         .order("published_date", { ascending: false });
+
+      // Filter by selected language
+      query = query.eq("language", selectedLanguage);
+
+      const { data: articlesData, error: articlesError } = await query;
 
       if (articlesError) throw articlesError;
 
@@ -235,7 +236,7 @@ const Index = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    applyFilters(allArticles, query, selectedCategories, selectedLanguage);
+    applyFilters(allArticles, query, selectedCategories);
   };
 
   const handleCategoryToggle = (category: string) => {
@@ -243,19 +244,13 @@ const Index = () => {
       ? selectedCategories.filter((c) => c !== category)
       : [...selectedCategories, category];
     setSelectedCategories(newCategories);
-    applyFilters(allArticles, searchQuery, newCategories, selectedLanguage);
-  };
-
-  const handleLanguageChange = (lang: "english" | "hindi" | "all") => {
-    setSelectedLanguage(lang);
-    applyFilters(allArticles, searchQuery, selectedCategories, lang);
+    applyFilters(allArticles, searchQuery, newCategories);
   };
 
   const applyFilters = (
     articlesList: Article[],
     query: string,
-    categories: string[],
-    language: "english" | "hindi" | "all"
+    categories: string[]
   ) => {
     let filtered = articlesList;
 
@@ -273,13 +268,6 @@ const Index = () => {
     if (categories.length > 0) {
       filtered = filtered.filter((article) =>
         categories.includes(article.category)
-      );
-    }
-
-    // Apply language filter
-    if (language !== "all") {
-      filtered = filtered.filter((article: any) =>
-        article.language === language
       );
     }
 
@@ -342,40 +330,32 @@ const Index = () => {
           onValueChange={(v) => setFilter(v as typeof filter)}
           className="space-y-6"
         >
-          <div className="flex items-center justify-between">
-            <TabsList>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <TabsList className="shrink-0">
               <TabsTrigger value="today">Today</TabsTrigger>
               <TabsTrigger value="week">7 Days</TabsTrigger>
               <TabsTrigger value="month">30 Days</TabsTrigger>
             </TabsList>
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    {selectedLanguage === "all" ? "All Languages" : selectedLanguage === "english" ? "English" : "हिंदी"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-36">
-                  <DropdownMenuCheckboxItem
-                    checked={selectedLanguage === "all"}
-                    onCheckedChange={() => handleLanguageChange("all")}
-                  >
-                    All Languages
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedLanguage === "english"}
-                    onCheckedChange={() => handleLanguageChange("english")}
-                  >
-                    English
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={selectedLanguage === "hindi"}
-                    onCheckedChange={() => handleLanguageChange("hindi")}
-                  >
-                    हिंदी
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex gap-2 flex-wrap">
+              {/* Language Toggle Buttons */}
+              <div className="flex rounded-lg border border-border overflow-hidden">
+                <Button
+                  variant={selectedLanguage === "english" ? "default" : "ghost"}
+                  size="sm"
+                  className="rounded-none border-0"
+                  onClick={() => setSelectedLanguage("english")}
+                >
+                  English
+                </Button>
+                <Button
+                  variant={selectedLanguage === "hindi" ? "default" : "ghost"}
+                  size="sm"
+                  className="rounded-none border-0 border-l border-border"
+                  onClick={() => setSelectedLanguage("hindi")}
+                >
+                  हिंदी
+                </Button>
+              </div>
               <Button 
                 variant="outline" 
                 size="icon"
@@ -391,7 +371,7 @@ const Index = () => {
                     <Filter className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 bg-background">
                   {uniqueCategories.map((category) => (
                     <DropdownMenuCheckboxItem
                       key={category}
