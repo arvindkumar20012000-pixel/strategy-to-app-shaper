@@ -41,12 +41,14 @@ const Index = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<"english" | "hindi">("english");
 
+  // Fetch articles only when user changes or on initial load - not on filter/language change
   useEffect(() => {
     if (user) {
       fetchArticles();
       fetchBanners();
     }
-  }, [user, filter, selectedLanguage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Only check and fetch news once on initial mount
   useEffect(() => {
@@ -140,20 +142,15 @@ const Index = () => {
 
     setLoading(true);
     try {
-      const daysAgo = filter === "today" ? 1 : filter === "week" ? 7 : 30;
+      // Fetch ALL articles from last 30 days
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - daysAgo);
+      startDate.setDate(startDate.getDate() - 30);
 
-      let query = supabase
+      const { data: articlesData, error: articlesError } = await supabase
         .from("articles")
         .select("*")
         .gte("published_date", startDate.toISOString().split("T")[0])
         .order("published_date", { ascending: false });
-
-      // Filter by selected language
-      query = query.eq("language", selectedLanguage);
-
-      const { data: articlesData, error: articlesError } = await query;
 
       if (articlesError) throw articlesError;
 
@@ -175,7 +172,6 @@ const Index = () => {
       })) || [];
 
       setAllArticles(articlesWithBookmarks);
-      setArticles(articlesWithBookmarks);
     } catch (error: any) {
       toast.error("Failed to load articles");
       console.error(error);
@@ -183,6 +179,38 @@ const Index = () => {
       setLoading(false);
     }
   };
+
+  // Apply filters locally when language or filter changes
+  useEffect(() => {
+    if (allArticles.length === 0) return;
+    
+    const daysAgo = filter === "today" ? 1 : filter === "week" ? 7 : 30;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - daysAgo);
+
+    let filtered = allArticles.filter((article) => {
+      const articleDate = new Date(article.published_date);
+      return articleDate >= startDate && article.language === selectedLanguage;
+    });
+
+    // Apply search and category filters
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(
+        (article) =>
+          article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          article.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          article.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((article) =>
+        selectedCategories.includes(article.category)
+      );
+    }
+
+    setArticles(filtered);
+  }, [allArticles, filter, selectedLanguage, searchQuery, selectedCategories]);
 
   const handleBookmark = async (articleId: string) => {
     if (!user) return;

@@ -135,25 +135,37 @@ serve(async (req) => {
     // Summarize NewsAPI articles - concise pointwise format
     const prompt = `${languageInstruction}
 
-Summarize the following news articles in a concise, pointwise format. Create clear, easy-to-read summaries.
+Summarize the following news articles. Explain what each incident or event is about briefly first. Then provide key points.
 
-IMPORTANT RULES:
+STRICT FORMATTING RULES:
 1. Keep the ORIGINAL source name and author from each article
-2. Summarize in bullet points only - no paragraphs
-3. DO NOT include any "relevance for exams" or "exam importance" sections
-4. Keep it simple and factual
+2. Start with 1-2 sentences explaining what the incident or event is about
+3. Then list key points with each point on a NEW LINE
+4. Use "• " prefix for each point
+5. Each point must be on its own line - NO COMMAS to separate points
+6. DO NOT use brackets or parentheses anywhere
+7. DO NOT include any exam relevance sections
+8. Keep it simple and factual
 
 News Articles:
 ${newsContent}
 
-For each article, provide:
-- title: Clear headline (max 100 chars)
-- description: One-line summary (max 150 chars)
-- content: Bullet point summary with 4-6 key points. Format each point with "• " prefix. Each point should be one clear sentence.
-- source: Keep the ORIGINAL source name from the article
-- author: Keep the ORIGINAL author name from the article
+For each article provide:
+- title: Clear headline without brackets - max 100 chars
+- description: One sentence about what happened - max 150 chars
+- content: First write 1-2 sentences explaining what the incident is about. Then add 4-5 bullet points. IMPORTANT: Each bullet point MUST be on a separate line starting with "• ". Never use commas to list multiple things in one point. Never use brackets.
+- source: Keep the ORIGINAL source name
+- author: Keep the ORIGINAL author name
 
-Format as JSON array with keys: title, description, content, source, author
+Example content format:
+This incident is about a major policy announcement by the government regarding education reforms.
+
+• The government announced new education policy changes
+• Schools will implement the changes from next year
+• Teachers will receive additional training
+• Students will benefit from updated curriculum
+
+Format as JSON array with keys: title description content source author
 
 Return ALL articles in the same order.`;
 
