@@ -152,6 +152,39 @@ export type Database = {
           },
         ]
       }
+      content_requests: {
+        Row: {
+          admin_response: string | null
+          content_type: string
+          created_at: string
+          details: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_response?: string | null
+          content_type: string
+          created_at?: string
+          details: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_response?: string | null
+          content_type?: string
+          created_at?: string
+          details?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       downloads: {
         Row: {
           content_id: string

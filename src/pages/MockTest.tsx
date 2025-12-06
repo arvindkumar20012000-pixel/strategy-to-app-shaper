@@ -31,11 +31,19 @@ interface PausedTest {
 const MockTest = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("Medium");
+  const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [tests, setTests] = useState<MockTest[]>([]);
   const [pausedTests, setPausedTests] = useState<PausedTest[]>([]);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const navigate = useNavigate();
+
+  const difficulties = ["Easy", "Medium", "Hard"];
+  const languages = [
+    { value: "english", label: "English" },
+    { value: "hindi", label: "हिंदी" },
+  ];
 
   const subjects = [
     "History",
@@ -132,8 +140,9 @@ const MockTest = () => {
       const { data, error } = await supabase.functions.invoke("generate-test", {
         body: {
           subject: selectedSubject,
-          difficulty: "Medium",
+          difficulty: selectedDifficulty,
           questionsCount: 20,
+          language: selectedLanguage,
         },
       });
 
@@ -247,7 +256,7 @@ const MockTest = () => {
           </div>
         )}
 
-        <div className="mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Select value={selectedSubject} onValueChange={setSelectedSubject}>
             <SelectTrigger>
               <SelectValue placeholder="Select Subject" />
@@ -256,6 +265,32 @@ const MockTest = () => {
               {subjects.map((subject) => (
                 <SelectItem key={subject} value={subject}>
                   {subject}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+            <SelectTrigger>
+              <SelectValue placeholder="Difficulty" />
+            </SelectTrigger>
+            <SelectContent>
+              {difficulties.map((diff) => (
+                <SelectItem key={diff} value={diff}>
+                  {diff}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+            <SelectTrigger>
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              {languages.map((lang) => (
+                <SelectItem key={lang.value} value={lang.value}>
+                  {lang.label}
                 </SelectItem>
               ))}
             </SelectContent>
