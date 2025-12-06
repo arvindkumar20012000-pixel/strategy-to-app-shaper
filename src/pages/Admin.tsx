@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, Shield, FileText, Bell } from "lucide-react";
+import { Loader2, Shield, FileText, Bell, MessageSquare } from "lucide-react";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { ArticleManagement } from "@/components/admin/ArticleManagement";
 import { TestManagement } from "@/components/admin/TestManagement";
@@ -15,6 +15,7 @@ import { NCERTManagement } from "@/components/admin/NCERTManagement";
 import { NotificationManagement } from "@/components/admin/NotificationManagement";
 import { PreviousYearQuestions } from "@/components/admin/PreviousYearQuestions";
 import { BannerManagement } from "@/components/admin/BannerManagement";
+import { ContentRequestsManagement } from "@/components/admin/ContentRequestsManagement";
 
 export default function Admin() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -75,7 +76,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="settings">Settings</TabsTrigger>
             <TabsTrigger value="banners">Banners</TabsTrigger>
             <TabsTrigger value="articles">Articles</TabsTrigger>
@@ -83,12 +84,16 @@ export default function Admin() {
             <TabsTrigger value="exams">Exam Types</TabsTrigger>
             <TabsTrigger value="ncert">NCERT</TabsTrigger>
             <TabsTrigger value="notifications">
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
+              <Bell className="h-4 w-4 mr-1" />
+              Notifs
             </TabsTrigger>
             <TabsTrigger value="previous-papers">
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-1" />
               PYQs
+            </TabsTrigger>
+            <TabsTrigger value="requests">
+              <MessageSquare className="h-4 w-4 mr-1" />
+              Requests
             </TabsTrigger>
           </TabsList>
 
@@ -122,6 +127,10 @@ export default function Admin() {
 
           <TabsContent value="previous-papers">
             <PreviousYearQuestions />
+          </TabsContent>
+
+          <TabsContent value="requests">
+            <ContentRequestsManagement />
           </TabsContent>
         </Tabs>
       </main>
