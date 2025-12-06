@@ -48,11 +48,13 @@ const Index = () => {
     }
   }, [user, filter, selectedLanguage]);
 
+  // Only check and fetch news once on initial mount
   useEffect(() => {
     if (user) {
       checkAndFetchNews();
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (banners.length > 1) {
