@@ -469,7 +469,7 @@ const TestTaking = () => {
             </Sheet>
             
             <div className="flex-1 min-w-0 text-center">
-              <h2 className="font-semibold text-sm truncate">{testName}</h2>
+              <h2 className="font-bold text-lg sm:text-xl truncate">{testName}</h2>
               <p className="text-xs text-muted-foreground">
                 Q {currentQuestionIndex + 1}/{questions.length}
               </p>

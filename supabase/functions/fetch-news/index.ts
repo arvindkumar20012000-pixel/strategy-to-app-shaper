@@ -132,33 +132,30 @@ serve(async (req) => {
       ? "सभी लेख, शीर्षक, विवरण और सामग्री केवल हिंदी भाषा में लिखें। (Write ALL summaries, titles, descriptions, and content in HINDI language only.)" 
       : "Generate all content in English language.";
 
-    // Summarize NewsAPI articles for exam relevance
+    // Summarize NewsAPI articles - concise pointwise format
     const prompt = `${languageInstruction}
 
-I have the following latest news articles. Summarize and rewrite ALL 10 articles with an exam-focused perspective for competitive exam students in India (SSC, Railway, Banking, UPSC, State PSC, Defence exams).
+Summarize the following news articles in a concise, pointwise format. Create clear, easy-to-read summaries.
 
-IMPORTANT: Keep the ORIGINAL source name and author from each article. Summarize ALL articles, prioritizing those most relevant to:
-- Government policies and schemes
-- Economic decisions and budget updates
-- International relations and diplomacy
-- Constitutional appointments
-- Legal amendments
-- Education sector news
-- Employment and recruitment news
+IMPORTANT RULES:
+1. Keep the ORIGINAL source name and author from each article
+2. Summarize in bullet points only - no paragraphs
+3. DO NOT include any "relevance for exams" or "exam importance" sections
+4. Keep it simple and factual
 
 News Articles:
 ${newsContent}
 
 For each article, provide:
-- title: Clear exam-focused headline (max 100 chars)
-- description: Key points for exam preparation (max 200 chars)  
-- content: Detailed summary with exam relevance (3-4 paragraphs)
+- title: Clear headline (max 100 chars)
+- description: One-line summary (max 150 chars)
+- content: Bullet point summary with 4-6 key points. Format each point with "• " prefix. Each point should be one clear sentence.
 - source: Keep the ORIGINAL source name from the article
 - author: Keep the ORIGINAL author name from the article
 
 Format as JSON array with keys: title, description, content, source, author
 
-Return ALL 10 articles, sorted by relevance to competitive exams (most relevant first).`;
+Return ALL articles in the same order.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
