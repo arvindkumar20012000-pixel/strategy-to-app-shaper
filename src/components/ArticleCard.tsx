@@ -196,8 +196,46 @@ export const ArticleCard = ({
 
               <div className="space-y-4">
                 {articleDetails.content && (
-                  <div className="prose prose-sm max-w-none">
-                    <p className="text-foreground whitespace-pre-wrap break-words">{articleDetails.content}</p>
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    {articleDetails.content.split('\n').map((line, index) => {
+                      const trimmedLine = line.trim();
+                      if (!trimmedLine) return <div key={index} className="h-2" />;
+                      
+                      // Handle markdown headings
+                      if (trimmedLine.startsWith('## ')) {
+                        return (
+                          <h3 key={index} className="text-lg font-semibold text-foreground mt-4 mb-2">
+                            {trimmedLine.replace('## ', '')}
+                          </h3>
+                        );
+                      }
+                      if (trimmedLine.startsWith('# ')) {
+                        return (
+                          <h2 key={index} className="text-xl font-bold text-foreground mt-4 mb-2">
+                            {trimmedLine.replace('# ', '')}
+                          </h2>
+                        );
+                      }
+                      
+                      // Handle bullet points
+                      if (trimmedLine.startsWith('• ') || trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+                        return (
+                          <div key={index} className="flex items-start gap-2 ml-2">
+                            <span className="text-primary mt-0.5">•</span>
+                            <span className="text-foreground">
+                              {trimmedLine.replace(/^[•\-\*]\s*/, '')}
+                            </span>
+                          </div>
+                        );
+                      }
+                      
+                      // Regular paragraph
+                      return (
+                        <p key={index} className="text-foreground break-words">
+                          {trimmedLine}
+                        </p>
+                      );
+                    })}
                   </div>
                 )}
 

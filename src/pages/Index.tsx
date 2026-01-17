@@ -237,12 +237,12 @@ const Index = () => {
         toast.success("Article bookmarked");
       }
 
-      // Update local state
-      setArticles((prev) =>
-        prev.map((a) =>
-          a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
-        )
-      );
+      // Update both local states to keep them in sync without triggering filter effect
+      const updateBookmark = (a: Article) =>
+        a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a;
+      
+      setAllArticles((prev) => prev.map(updateBookmark));
+      setArticles((prev) => prev.map(updateBookmark));
     } catch (error: any) {
       toast.error("Failed to update bookmark");
       console.error(error);
