@@ -41,7 +41,7 @@ const Index = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<"english" | "hindi">("english");
 
-  // Fetch articles only when user changes or on initial load - not on filter/language change
+  // Fetch articles only once when user logs in - no auto refresh
   useEffect(() => {
     if (user) {
       fetchArticles();
@@ -50,14 +50,7 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Only check and fetch news once on initial mount
-  useEffect(() => {
-    if (user) {
-      checkAndFetchNews();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  // Banner carousel rotation
   useEffect(() => {
     if (banners.length > 1) {
       const interval = setInterval(() => {
@@ -66,25 +59,6 @@ const Index = () => {
       return () => clearInterval(interval);
     }
   }, [banners.length]);
-
-  const checkAndFetchNews = async () => {
-    const lastFetchEnglish = localStorage.getItem("lastNewsFetch_english");
-    const lastFetchHindi = localStorage.getItem("lastNewsFetch_hindi");
-    const now = Date.now();
-    const twoHours = 2 * 60 * 60 * 1000;
-
-    // Fetch English news if needed
-    if (!lastFetchEnglish || now - parseInt(lastFetchEnglish) > twoHours) {
-      await fetchFreshNews("english");
-      localStorage.setItem("lastNewsFetch_english", now.toString());
-    }
-
-    // Fetch Hindi news if needed
-    if (!lastFetchHindi || now - parseInt(lastFetchHindi) > twoHours) {
-      await fetchFreshNews("hindi");
-      localStorage.setItem("lastNewsFetch_hindi", now.toString());
-    }
-  };
 
   const fetchBanners = async () => {
     try {
@@ -142,9 +116,9 @@ const Index = () => {
 
     setLoading(true);
     try {
-      // Fetch ALL articles from last 30 days
+      // Fetch articles from last 2 days only
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+      startDate.setDate(startDate.getDate() - 2);
 
       const { data: articlesData, error: articlesError } = await supabase
         .from("articles")

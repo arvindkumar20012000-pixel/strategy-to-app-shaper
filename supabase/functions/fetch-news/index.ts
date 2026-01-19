@@ -46,28 +46,32 @@ serve(async (req) => {
       console.log("Cleaned old articles");
     }
 
-    // Fetch news from NewsAPI.org - ONLY source for articles
+    // Fetch news from NewsAPI.org - ONLY last 2 days
     let newsArticles: any[] = [];
     let newsApiError: string | null = null;
     
-    // Determine language parameter for NewsAPI
-    const newsApiLanguage = language === "hindi" ? "hi" : "en";
+    // Calculate date range for past 2 days
+    const today = new Date();
+    const twoDaysAgo = new Date(today);
+    twoDaysAgo.setDate(today.getDate() - 2);
+    const fromDate = twoDaysAgo.toISOString().split('T')[0];
+    const toDate = today.toISOString().split('T')[0];
     
-    // Try multiple NewsAPI endpoints to get articles
+    console.log(`Fetching news from ${fromDate} to ${toDate}`);
+    
+    // Try multiple NewsAPI endpoints to get articles - with date filter
     const newsApiQueries = language === "hindi" 
       ? [
-          // Hindi news from India
+          // Hindi news from India with date range
+          `https://newsapi.org/v2/everything?q=भारत&language=hi&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
+          // Hindi top headlines
           `https://newsapi.org/v2/top-headlines?country=in&language=hi&pageSize=10&apiKey=${NEWS_API_KEY}`,
-          // Hindi news with India-related keywords
-          `https://newsapi.org/v2/everything?q=भारत+सरकार+नीति&language=hi&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
         ]
       : [
-          // English news from India
+          // English news with date range - India focused
+          `https://newsapi.org/v2/everything?q=India&language=en&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
+          // English top headlines from India
           `https://newsapi.org/v2/top-headlines?country=in&language=en&pageSize=10&apiKey=${NEWS_API_KEY}`,
-          // English news with India-related keywords
-          `https://newsapi.org/v2/everything?q=India+government+policy+economy&language=en&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
-          // Global top headlines
-          `https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey=${NEWS_API_KEY}`,
         ];
     
     for (const apiUrl of newsApiQueries) {
@@ -82,7 +86,7 @@ serve(async (req) => {
         }
         
         const newsData = await newsResponse.json();
-        console.log(`NewsAPI response:`, JSON.stringify(newsData).substring(0, 200));
+        console.log(`NewsAPI response status: ${newsData.status}, articles: ${newsData.articles?.length || 0}`);
         
         if (newsData.status === "error") {
           console.log(`NewsAPI error: ${newsData.message || newsData.code}`);
@@ -90,10 +94,17 @@ serve(async (req) => {
           continue;
         }
         
-        newsArticles = newsData.articles || [];
+        // Filter to only include articles from last 2 days
+        const filteredArticles = (newsData.articles || []).filter((article: any) => {
+          if (!article.publishedAt) return false;
+          const articleDate = new Date(article.publishedAt);
+          return articleDate >= twoDaysAgo && articleDate <= today;
+        });
+        
+        newsArticles = filteredArticles;
         
         if (newsArticles.length > 0) {
-          console.log(`Successfully fetched ${newsArticles.length} articles from NewsAPI`);
+          console.log(`Successfully fetched ${newsArticles.length} recent articles from NewsAPI`);
           break;
         }
       } catch (error: any) {
@@ -104,11 +115,11 @@ serve(async (req) => {
     if (newsArticles.length === 0) {
       const errorMsg = newsApiError 
         ? `NewsAPI error: ${newsApiError}. Please check your API key in admin settings.`
-        : "No articles available from NewsAPI. Please try again later or check your API key.";
+        : "No recent articles available from NewsAPI. Please try again later.";
       throw new Error(errorMsg);
     }
     
-    console.log(`Fetched ${newsArticles.length} news articles from NewsAPI`);
+    console.log(`Fetched ${newsArticles.length} news articles from last 2 days`);
     
     // Store original articles data for reference
     const originalArticles = newsArticles.map((article: any) => ({
