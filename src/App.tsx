@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import Index from "./pages/Index";
 import NCERT from "./pages/NCERT";
 import PreviousPapers from "./pages/PreviousPapers";
@@ -28,6 +29,7 @@ import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,90 +44,92 @@ const App = () => (
           <AuthProvider>
             <div className="overflow-x-hidden w-full">
               <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ncert"
-              element={
-                <ProtectedRoute>
-                  <NCERT />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/pyp"
-              element={
-                <ProtectedRoute>
-                  <PreviousPapers />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/mock-test"
-              element={
-                <ProtectedRoute>
-                  <MockTest />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/exam-instructions"
-              element={
-                <ProtectedRoute>
-                  <ExamInstructions />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/test/:id"
-              element={
-                <ProtectedRoute>
-                  <TestTaking />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/test-taking/:id"
-              element={
-                <ProtectedRoute>
-                  <TestTaking />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/test-result/:attemptId"
-              element={
-                <ProtectedRoute>
-                  <TestResult />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
-            <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
-            <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-            <Route path="/doubt-clearance" element={<ProtectedRoute><DoubtClearance /></ProtectedRoute>} />
-            <Route path="/live-tests" element={<ProtectedRoute><LiveTests /></ProtectedRoute>} />
-            <Route path="/request-content" element={<ProtectedRoute><RequestContent /></ProtectedRoute>} />
-            <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-            <Route path="/faqs" element={<FAQs />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/install" element={<Install />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ncert"
+                  element={
+                    <ProtectedRoute>
+                      <NCERT />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/pyp"
+                  element={
+                    <ProtectedRoute>
+                      <PreviousPapers />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/mock-test"
+                  element={
+                    <ProtectedRoute>
+                      <MockTest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/exam-instructions"
+                  element={
+                    <ProtectedRoute>
+                      <ExamInstructions />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test/:id"
+                  element={
+                    <ProtectedRoute>
+                      <TestTaking />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test-taking/:id"
+                  element={
+                    <ProtectedRoute>
+                      <TestTaking />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/test-result/:attemptId"
+                  element={
+                    <ProtectedRoute>
+                      <TestResult />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
+                <Route path="/bookmarks" element={<ProtectedRoute><Bookmarks /></ProtectedRoute>} />
+                <Route path="/downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
+                <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                <Route path="/doubt-clearance" element={<ProtectedRoute><DoubtClearance /></ProtectedRoute>} />
+                <Route path="/live-tests" element={<ProtectedRoute><LiveTests /></ProtectedRoute>} />
+                <Route path="/request-content" element={<ProtectedRoute><RequestContent /></ProtectedRoute>} />
+                <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+                <Route path="/faqs" element={<FAQs />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <InstallPrompt />
             </div>
-        </AuthProvider>
-      </BrowserRouter>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
