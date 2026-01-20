@@ -403,7 +403,7 @@ const Index = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 {articles.map((article) => (
                   <ArticleCard
                     key={article.id}

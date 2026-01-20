@@ -133,7 +133,7 @@ export const ArticleCard = ({
     <>
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer w-full max-w-full" onClick={handleCardClick}>
         {image_url && (
-          <div className="h-48 overflow-hidden">
+          <div className="h-40 overflow-hidden">
             <img
               src={image_url}
               alt={title}
@@ -141,7 +141,7 @@ export const ArticleCard = ({
             />
           </div>
         )}
-        <CardHeader className="space-y-2 p-4">
+        <CardHeader className="space-y-1.5 p-3 pb-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <Badge variant="secondary" className="text-xs shrink-0">{category}</Badge>
             <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
@@ -151,8 +151,8 @@ export const ArticleCard = ({
           </div>
           <h3 className="text-lg font-semibold line-clamp-2 break-words">{title}</h3>
         </CardHeader>
-        <CardContent className="p-4 pt-0">
-          <p className="text-sm text-muted-foreground line-clamp-3 mb-4 break-words">{description}</p>
+        <CardContent className="p-3 pt-0">
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3 break-words">{description}</p>
           <div className="flex gap-2">
             <Button onClick={handleBookmark} variant="outline" size="sm" className="flex-1 min-w-0">
               <Bookmark className={`w-4 h-4 mr-2 shrink-0 ${isBookmarked ? "fill-primary" : ""}`} />
