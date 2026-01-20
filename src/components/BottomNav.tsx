@@ -10,22 +10,22 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    icon: <Newspaper className="w-5 h-5" />,
+    icon: <Newspaper className="w-6 h-6" strokeWidth={2.5} />,
     label: "Feed",
     path: "/",
   },
   {
-    icon: <BookOpen className="w-5 h-5" />,
+    icon: <BookOpen className="w-6 h-6" strokeWidth={2.5} />,
     label: "NCERT",
     path: "/ncert",
   },
   {
-    icon: <FileText className="w-5 h-5" />,
+    icon: <FileText className="w-6 h-6" strokeWidth={2.5} />,
     label: "PYP",
     path: "/pyp",
   },
   {
-    icon: <ClipboardCheck className="w-5 h-5" />,
+    icon: <ClipboardCheck className="w-6 h-6" strokeWidth={2.5} />,
     label: "Mock Test",
     path: "/mock-test",
   },
@@ -59,7 +59,7 @@ export const BottomNav = () => {
               >
                 {item.icon}
               </div>
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-xs font-bold">{item.label}</span>
               {isActive && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />
               )}
