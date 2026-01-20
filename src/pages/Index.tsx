@@ -283,11 +283,11 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-20 overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-20 flex flex-col">
       <Header onMenuClick={() => setDrawerOpen(true)} onSearch={handleSearch} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6 w-full">
+      <main className="max-w-screen-xl mx-auto px-4 py-6 pt-20 w-full overflow-x-hidden">
         {/* Hero Banner Carousel */}
         <div className="mb-6 rounded-lg overflow-hidden relative">
           {banners.length > 0 ? (
