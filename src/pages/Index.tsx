@@ -283,19 +283,19 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-20 flex flex-col">
+    <div className="min-h-screen bg-background pb-16 flex flex-col">
       <Header onMenuClick={() => setDrawerOpen(true)} onSearch={handleSearch} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6 pt-20 w-full overflow-x-hidden">
+      <main className="max-w-screen-xl mx-auto px-3 py-3 pt-16 w-full overflow-x-hidden">
         {/* Hero Banner Carousel */}
-        <div className="mb-6 rounded-lg overflow-hidden relative">
+        <div className="mb-4 rounded-xl overflow-hidden relative">
           {banners.length > 0 ? (
             <>
               <img
                 src={getBannerImageUrl(banners[currentBannerIndex].image_path)}
                 alt={banners[currentBannerIndex].title}
-                className="w-full h-48 object-cover transition-opacity duration-500"
+                className="w-full h-40 sm:h-48 object-cover transition-opacity duration-500"
               />
               {banners.length > 1 && (
                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-2">
@@ -315,7 +315,7 @@ const Index = () => {
             </>
           ) : (
             <div
-              className="rounded-2xl overflow-hidden h-48 relative bg-cover bg-center"
+              className="rounded-2xl overflow-hidden h-40 sm:h-48 relative bg-cover bg-center"
               style={{ backgroundImage: `url(${heroBanner})` }}
             >
               <div className="absolute inset-0 bg-gradient-primary opacity-90" />
@@ -332,9 +332,9 @@ const Index = () => {
         <Tabs
           value={filter}
           onValueChange={(v) => setFilter(v as typeof filter)}
-          className="space-y-6"
+          className="space-y-4"
         >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <TabsList className="shrink-0">
               <TabsTrigger value="today">Today</TabsTrigger>
               <TabsTrigger value="week">7 Days</TabsTrigger>
@@ -390,7 +390,7 @@ const Index = () => {
             </div>
           </div>
 
-          <TabsContent value={filter} className="space-y-4">
+          <TabsContent value={filter} className="space-y-3">
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>

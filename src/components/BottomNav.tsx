@@ -36,7 +36,7 @@ export const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around max-w-screen-xl mx-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -45,7 +45,7 @@ export const BottomNav = () => {
               key={item.path}
               onClick={() => navigate(item.path)}
               className={cn(
-                "flex flex-col items-center gap-1 py-3 px-4 flex-1 transition-all duration-200",
+                "flex flex-col items-center gap-0.5 py-2 px-3 flex-1 transition-all duration-200",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
