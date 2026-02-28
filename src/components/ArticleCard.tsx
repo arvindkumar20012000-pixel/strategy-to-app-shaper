@@ -133,7 +133,7 @@ export const ArticleCard = ({
     <>
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer w-full max-w-full" onClick={handleCardClick}>
         {image_url && (
-          <div className="h-40 overflow-hidden">
+          <div className="h-36 sm:h-40 overflow-hidden">
             <img
               src={image_url}
               alt={title}
