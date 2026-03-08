@@ -106,8 +106,8 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-[300px] sm:w-[350px] flex flex-col p-0">
-        <div className="sticky top-0 z-10 bg-background p-6 pb-4 border-b">
+      <SheetContent side="left" className="w-[300px] sm:w-[350px] flex flex-col p-0 overflow-hidden">
+        <div className="shrink-0 bg-background p-6 pb-4 border-b">
           <SheetHeader>
             <SheetTitle>
               <div className="flex items-center gap-3">
