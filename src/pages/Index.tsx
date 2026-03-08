@@ -78,33 +78,6 @@ const Index = () => {
     }
   };
 
-  const fetchFreshNews = async (language: "english" | "hindi") => {
-    try {
-      const { data, error } = await supabase.functions.invoke("fetch-news", {
-        body: { language },
-      });
-
-      if (error) throw error;
-      
-      if (data?.success) {
-        toast.success(`Fetched ${data.articlesCount} new ${language} articles`);
-        fetchArticles();
-      }
-    } catch (error: any) {
-      console.error("Error fetching news:", error);
-      toast.error(`Failed to fetch ${language} news`);
-    }
-  };
-
-  const handleManualRefresh = async () => {
-    setLoading(true);
-    const now = Date.now().toString();
-    
-    // Fetch news for selected language only
-    await fetchFreshNews(selectedLanguage);
-    localStorage.setItem(`lastNewsFetch_${selectedLanguage}`, now);
-    setLoading(false);
-  };
 
   const getBannerImageUrl = (path: string) => {
     const { data } = supabase.storage.from("banners").getPublicUrl(path);
