@@ -93,7 +93,7 @@ const Auth = () => {
               <Download className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="font-semibold text-sm text-foreground">Install ExamPulse App</p>
+              <p className="font-semibold text-sm text-foreground">Install StudyByte App</p>
               <p className="text-xs text-muted-foreground">Quick access, works offline</p>
             </div>
           </div>
@@ -115,7 +115,7 @@ const Auth = () => {
               <BookOpen className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome to ExamPulse</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome to StudyByte</h1>
           <p className="text-white/90">Your daily exam preparation companion</p>
         </div>
 

@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt", "placeholder.svg"],
       manifest: {
-        name: "ExamPulse - Daily Exam Preparation",
-        short_name: "ExamPulse",
+        name: "StudyByte - Daily Exam Preparation",
+        short_name: "StudyByte",
         description: "Your daily dose of current affairs, NCERT solutions, and AI-powered mock tests for competitive exam preparation.",
         theme_color: "#7c3aed",
         background_color: "#0f0f23",

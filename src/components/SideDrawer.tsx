@@ -110,12 +110,12 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
           <SheetTitle>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-lg">EP</span>
+                <span className="text-white font-bold text-lg">SB</span>
               </div>
               <div>
-                <div className="text-lg font-bold">ExamPulse</div>
+                <div className="text-lg font-bold">StudyByte</div>
                 <div className="text-sm text-muted-foreground truncate">
-                  {user?.email || "Your Exam Partner"}
+                  {user?.email || "Your Study Partner"}
                 </div>
               </div>
             </div>

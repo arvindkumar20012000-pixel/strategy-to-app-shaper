@@ -116,7 +116,7 @@ serve(async (req) => {
       description: a.description || "",
       content: a.content || "",
       source: a.source?.name || "Unknown",
-      author: a.author || "ExamPulse",
+      author: a.author || "StudyByte",
       url: a.url,
       image_url: a.urlToImage,
     }));
@@ -204,7 +204,7 @@ Return ALL articles.`;
         title: article.title || orig.title || `Exam Update ${index + 1}`,
         description: article.description || orig.description || "",
         content: article.content || orig.content || "",
-        source: article.source || orig.source || "ExamPulse",
+        source: article.source || orig.source || "StudyByte",
         image_url: orig.image_url || null,
         category: "current-affairs",
         published_date: new Date().toISOString().split("T")[0],

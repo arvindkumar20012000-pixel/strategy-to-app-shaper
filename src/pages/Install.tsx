@@ -36,7 +36,7 @@ const Install = () => {
           <div className="w-20 h-20 bg-gradient-to-br from-primary to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
             <Download className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Install ExamPulse</h1>
+          <h1 className="text-2xl font-bold mb-2">Install StudyByte</h1>
           <p className="text-muted-foreground">
             Get the full app experience on your device
           </p>
@@ -53,7 +53,7 @@ const Install = () => {
                 <div>
                   <p className="font-semibold text-green-600">Already Installed!</p>
                   <p className="text-sm text-muted-foreground">
-                    ExamPulse is ready on your device
+                    StudyByte is ready on your device
                   </p>
                 </div>
               </div>
@@ -93,7 +93,7 @@ const Install = () => {
                   <div>
                     <p className="font-medium">3. Tap "Add" to confirm</p>
                     <p className="text-sm text-muted-foreground">
-                      ExamPulse will appear on your home screen
+                      StudyByte will appear on your home screen
                     </p>
                   </div>
                 </div>
