@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Mail, Lock, User } from "lucide-react";
+import { BookOpen, Mail, Lock, User, Download, X } from "lucide-react";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -23,7 +24,9 @@ const signupSchema = loginSchema.extend({
 
 const Auth = () => {
   const { signIn, signUp } = useAuth();
+  const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const [loading, setLoading] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [loginData, setLoginData] = useState({
@@ -81,7 +84,30 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-4">
+      {/* PWA Install Banner */}
+      {showInstallBanner && !isInstalled && isInstallable && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Download className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold text-sm text-foreground">Install ExamPulse App</p>
+              <p className="text-xs text-muted-foreground">Quick access, works offline</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={installApp}>
+              Install
+            </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setShowInstallBanner(false)}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
