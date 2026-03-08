@@ -106,20 +106,24 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
-            <div className="flex items-center gap-3">
-              <img src={studyByteLogo} alt="StudyByte" className="w-12 h-12" />
-              <div>
-                <div className="text-lg font-bold">StudyByte</div>
-                <div className="text-sm text-muted-foreground truncate">
-                  {user?.email || "Your Study Partner"}
+      <SheetContent side="left" className="w-[300px] sm:w-[350px] flex flex-col p-0">
+        <div className="sticky top-0 z-10 bg-background p-6 pb-4 border-b">
+          <SheetHeader>
+            <SheetTitle>
+              <div className="flex items-center gap-3">
+                <img src={studyByteLogo} alt="StudyByte" className="w-12 h-12 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-lg font-bold truncate">StudyByte</div>
+                  <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                    {user?.email || "Your Study Partner"}
+                  </div>
                 </div>
               </div>
-            </div>
-          </SheetTitle>
-        </SheetHeader>
+            </SheetTitle>
+          </SheetHeader>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 pt-4">
 
         <div className="mt-6 space-y-1">
           {menuItems.map((item, index) => (
@@ -203,6 +207,7 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
           <Button variant="secondary" className="w-full" onClick={() => handleNavigation("/premium")}>
             Upgrade Now
           </Button>
+        </div>
         </div>
       </SheetContent>
     </Sheet>
