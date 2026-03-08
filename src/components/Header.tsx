@@ -45,10 +45,8 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
             >
               <Menu className="w-5 h-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">SB</span>
-              </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+              <img src={studyByteLogo} alt="StudyByte" className="w-8 h-8" />
               <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 StudyByte
               </h1>
