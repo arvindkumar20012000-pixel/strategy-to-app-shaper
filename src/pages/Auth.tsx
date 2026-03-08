@@ -27,6 +27,7 @@ const signupSchema = loginSchema.extend({
 const Auth = () => {
   const { signIn, signUp } = useAuth();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
