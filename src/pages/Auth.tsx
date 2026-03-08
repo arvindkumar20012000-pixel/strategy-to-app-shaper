@@ -258,31 +258,26 @@ const Auth = () => {
                      )}
                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-confirm"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={signupData.confirmPassword}
-                        onChange={(e) =>
-                          setSignupData({
-                            ...signupData,
-                            confirmPassword: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-                    {errors.confirmPassword && (
-                      <p className="text-sm text-destructive">
-                        {errors.confirmPassword}
-                      </p>
-                    )}
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="signup-confirm">Confirm Password</Label>
+                     <PasswordInput
+                       id="signup-confirm"
+                       placeholder="••••••••"
+                       value={signupData.confirmPassword}
+                       onChange={(e) =>
+                         setSignupData({
+                           ...signupData,
+                           confirmPassword: e.target.value,
+                         })
+                       }
+                       required
+                     />
+                     {errors.confirmPassword && (
+                       <p className="text-sm text-destructive">
+                         {errors.confirmPassword}
+                       </p>
+                     )}
+                   </div>
 
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Creating account..." : "Create Account"}
