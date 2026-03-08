@@ -383,7 +383,6 @@ const Index = () => {
               <div className="grid gap-3 md:grid-cols-2">
                 {articles.map((article, idx) => (
                   <>
-                  <>
                     <ArticleCard
                       key={article.id}
                       id={article.id}
