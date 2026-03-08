@@ -110,9 +110,7 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
         <SheetHeader>
           <SheetTitle>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-lg">SB</span>
-              </div>
+              <img src={studyByteLogo} alt="StudyByte" className="w-12 h-12" />
               <div>
                 <div className="text-lg font-bold">StudyByte</div>
                 <div className="text-sm text-muted-foreground truncate">
