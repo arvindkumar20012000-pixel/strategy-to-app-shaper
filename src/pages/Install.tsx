@@ -53,7 +53,7 @@ const Install = () => {
                 <div>
                   <p className="font-semibold text-green-600">Already Installed!</p>
                   <p className="text-sm text-muted-foreground">
-                    ExamPulse is ready on your device
+                    StudyByte is ready on your device
                   </p>
                 </div>
               </div>
