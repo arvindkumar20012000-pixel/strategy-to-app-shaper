@@ -3,7 +3,8 @@ import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { NotificationsDialog } from "@/components/NotificationsDialog";
+import { useNavigate } from "react-router-dom";
+import { Bell } from "lucide-react";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -12,6 +13,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps) => {
+  const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -58,7 +60,9 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
                 <Search className="w-5 h-5" />
               </Button>
             )}
-            <NotificationsDialog />
+            <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
+              <Bell className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </header>

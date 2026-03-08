@@ -31,6 +31,7 @@ import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -123,6 +124,7 @@ const App = () => (
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
