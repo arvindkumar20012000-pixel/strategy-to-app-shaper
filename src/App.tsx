@@ -47,6 +47,7 @@ const App = () => (
             <div className="overflow-x-hidden w-full">
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/install" element={<Install />} />
                 <Route
                   path="/"
