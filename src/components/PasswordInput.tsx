@@ -42,6 +42,3 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
 );
 
 PasswordInput.displayName = "PasswordInput";
-
-// Import Lock icon
-import { Lock } from "lucide-react";
