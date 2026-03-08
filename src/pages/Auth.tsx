@@ -93,7 +93,7 @@ const Auth = () => {
               <Download className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="font-semibold text-sm text-foreground">Install ExamPulse App</p>
+              <p className="font-semibold text-sm text-foreground">Install StudyByte App</p>
               <p className="text-xs text-muted-foreground">Quick access, works offline</p>
             </div>
           </div>
