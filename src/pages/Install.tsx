@@ -36,7 +36,7 @@ const Install = () => {
           <div className="w-20 h-20 bg-gradient-to-br from-primary to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
             <Download className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-2xl font-bold mb-2">Install ExamPulse</h1>
+          <h1 className="text-2xl font-bold mb-2">Install StudyByte</h1>
           <p className="text-muted-foreground">
             Get the full app experience on your device
           </p>
