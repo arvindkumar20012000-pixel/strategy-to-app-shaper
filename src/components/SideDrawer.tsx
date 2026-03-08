@@ -200,7 +200,7 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
           <p className="text-sm text-white/90 mb-3">
             Get unlimited access to all features
           </p>
-          <Button variant="secondary" className="w-full">
+          <Button variant="secondary" className="w-full" onClick={() => handleNavigation("/premium")}>
             Upgrade Now
           </Button>
         </div>
