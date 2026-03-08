@@ -29,7 +29,7 @@ export const InstallPrompt = () => {
                 <Download className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-semibold text-sm">Install ExamPulse</p>
+                 <p className="font-semibold text-sm">Install StudyByte</p>
                 <p className="text-xs text-white/80">Get the full app experience</p>
               </div>
             </div>
