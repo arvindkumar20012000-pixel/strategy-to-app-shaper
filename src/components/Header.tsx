@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
+import studyByteLogo from "@/assets/studybyte-logo.png";
 
 interface HeaderProps {
   onMenuClick: () => void;
