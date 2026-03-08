@@ -29,8 +29,8 @@ interface Plan {
 const plans: Plan[] = [
   {
     name: "Monthly",
-    price: "₹299",
-    amount: 299,
+    price: "₹49",
+    amount: 49,
     period: "per month",
     planType: "monthly",
     features: [
@@ -44,15 +44,15 @@ const plans: Plan[] = [
     ],
   },
   {
-    name: "Yearly",
-    price: "₹2,999",
-    amount: 2999,
-    period: "per year",
-    planType: "yearly",
+    name: "6 Months",
+    price: "₹259",
+    amount: 259,
+    period: "for 6 months",
+    planType: "6months",
     popular: true,
     features: [
       "All Monthly Features",
-      "Save 17%",
+      "Save 28%",
       "Priority Support",
       "Exclusive Study Material",
       "Referral Bonus",
