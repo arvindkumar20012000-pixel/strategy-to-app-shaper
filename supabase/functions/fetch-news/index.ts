@@ -18,9 +18,8 @@ serve(async (req) => {
 
     const { language = "english" } = await req.json().catch(() => ({}));
 
-    console.log(`Fetching fresh news for language: ${language}`);
+    console.log(`Fetching exam-focused news for language: ${language}`);
 
-    // Get News API key from admin settings
     const { data: apiKeyData } = await supabase
       .from("admin_settings")
       .select("value")
@@ -32,158 +31,146 @@ serve(async (req) => {
       throw new Error("NEWS_API_KEY not configured in admin settings");
     }
 
-    // Use Lovable AI
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    // Clean old articles (older than 7 days)
+    // Clean old articles
     const { error: cleanError } = await supabase.rpc("clean_old_articles");
-    if (cleanError) {
-      console.error("Error cleaning old articles:", cleanError);
-    } else {
-      console.log("Cleaned old articles");
-    }
+    if (cleanError) console.error("Error cleaning old articles:", cleanError);
 
-    // Fetch news from NewsAPI.org - ONLY last 2 days
-    let newsArticles: any[] = [];
-    let newsApiError: string | null = null;
-    
-    // Calculate date range for past 2 days
+    // Date range: last 2 days
     const today = new Date();
     const twoDaysAgo = new Date(today);
     twoDaysAgo.setDate(today.getDate() - 2);
     const fromDate = twoDaysAgo.toISOString().split('T')[0];
     const toDate = today.toISOString().split('T')[0];
-    
-    console.log(`Fetching news from ${fromDate} to ${toDate}`);
-    
-    // Try multiple NewsAPI endpoints to get articles - with date filter
-    const newsApiQueries = language === "hindi" 
-      ? [
-          // Hindi news from India with date range
-          `https://newsapi.org/v2/everything?q=भारत&language=hi&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
-          // Hindi top headlines
-          `https://newsapi.org/v2/top-headlines?country=in&language=hi&pageSize=10&apiKey=${NEWS_API_KEY}`,
-        ]
-      : [
-          // English news with date range - India focused
-          `https://newsapi.org/v2/everything?q=India&language=en&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=10&apiKey=${NEWS_API_KEY}`,
-          // English top headlines from India
-          `https://newsapi.org/v2/top-headlines?country=in&language=en&pageSize=10&apiKey=${NEWS_API_KEY}`,
-        ];
-    
-    for (const apiUrl of newsApiQueries) {
+
+    // Exam-focused search queries for competitive exams (SSC, UPSC, Railway, Banking, etc.)
+    const examKeywordsEn = [
+      "SSC OR UPSC OR Railway OR Banking exam OR government job OR sarkari naukri",
+      "India education policy OR NCERT OR examination result OR admit card",
+      "current affairs India OR economy OR constitution OR parliament OR supreme court",
+    ];
+    const examKeywordsHi = [
+      "सरकारी नौकरी OR SSC OR UPSC OR रेलवे भर्ती OR बैंकिंग परीक्षा",
+      "शिक्षा नीति OR परीक्षा परिणाम OR एडमिट कार्ड OR भारत समाचार",
+      "करंट अफेयर्स OR अर्थव्यवस्था OR संसद OR सुप्रीम कोर्ट",
+    ];
+
+    const keywords = language === "hindi" ? examKeywordsHi : examKeywordsEn;
+    let newsArticles: any[] = [];
+
+    for (const query of keywords) {
+      if (newsArticles.length >= 10) break;
       try {
-        console.log(`Trying NewsAPI endpoint: ${apiUrl.split('?')[0]}`);
-        const newsResponse = await fetch(apiUrl);
-        
-        if (!newsResponse.ok) {
-          const errorText = await newsResponse.text();
-          console.log(`NewsAPI returned status ${newsResponse.status}: ${errorText}`);
-          continue;
-        }
-        
-        const newsData = await newsResponse.json();
-        console.log(`NewsAPI response status: ${newsData.status}, articles: ${newsData.articles?.length || 0}`);
-        
-        if (newsData.status === "error") {
-          console.log(`NewsAPI error: ${newsData.message || newsData.code}`);
-          newsApiError = newsData.message || newsData.code;
-          continue;
-        }
-        
-        // Filter to only include articles from last 2 days
-        const filteredArticles = (newsData.articles || []).filter((article: any) => {
-          if (!article.publishedAt) return false;
-          const articleDate = new Date(article.publishedAt);
-          return articleDate >= twoDaysAgo && articleDate <= today;
+        const lang = language === "hindi" ? "hi" : "en";
+        const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=${lang}&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=5&apiKey=${NEWS_API_KEY}`;
+        console.log(`Fetching: ${query.substring(0, 40)}...`);
+        const res = await fetch(apiUrl);
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data.status === "error") continue;
+        const filtered = (data.articles || []).filter((a: any) => {
+          if (!a.publishedAt || !a.title || a.title === "[Removed]") return false;
+          const d = new Date(a.publishedAt);
+          return d >= twoDaysAgo && d <= today;
         });
-        
-        newsArticles = filteredArticles;
-        
-        if (newsArticles.length > 0) {
-          console.log(`Successfully fetched ${newsArticles.length} recent articles from NewsAPI`);
-          break;
-        }
-      } catch (error: any) {
-        console.log(`Error with NewsAPI endpoint: ${error.message || error}`);
+        newsArticles.push(...filtered);
+      } catch (e) {
+        console.log(`Error fetching query: ${e}`);
       }
     }
-    
+
+    // Fallback: top headlines from India
     if (newsArticles.length === 0) {
-      const errorMsg = newsApiError 
-        ? `NewsAPI error: ${newsApiError}. Please check your API key in admin settings.`
-        : "No recent articles available from NewsAPI. Please try again later.";
-      throw new Error(errorMsg);
+      try {
+        const fallbackUrl = `https://newsapi.org/v2/top-headlines?country=in&pageSize=10&apiKey=${NEWS_API_KEY}`;
+        const res = await fetch(fallbackUrl);
+        if (res.ok) {
+          const data = await res.json();
+          newsArticles = (data.articles || []).filter((a: any) => a.title && a.title !== "[Removed]");
+        }
+      } catch (e) {
+        console.log(`Fallback error: ${e}`);
+      }
     }
-    
-    console.log(`Fetched ${newsArticles.length} news articles from last 2 days`);
-    
-    // Store original articles data for reference
-    const originalArticles = newsArticles.map((article: any) => ({
-      title: article.title,
-      description: article.description || "",
-      content: article.content || "",
-      source: article.source?.name || "Unknown",
-      author: article.author || "ExamPulse",
-      url: article.url,
-      image_url: article.urlToImage,
+
+    if (newsArticles.length === 0) {
+      throw new Error("No recent exam-related articles found. Please try again later.");
+    }
+
+    // Deduplicate by title and limit to 10
+    const seen = new Set<string>();
+    newsArticles = newsArticles.filter(a => {
+      if (seen.has(a.title)) return false;
+      seen.add(a.title);
+      return true;
+    }).slice(0, 10);
+
+    console.log(`Fetched ${newsArticles.length} exam-focused articles`);
+
+    const originalArticles = newsArticles.map((a: any) => ({
+      title: a.title,
+      description: a.description || "",
+      content: a.content || "",
+      source: a.source?.name || "Unknown",
+      author: a.author || "ExamPulse",
+      url: a.url,
+      image_url: a.urlToImage,
     }));
-    
-    // Prepare news for AI summarization
+
     const newsContent = newsArticles
-      .map((article: any, idx: number) => 
-        `${idx + 1}. ${article.title}\nSource: ${article.source?.name || "Unknown"}\nAuthor: ${article.author || "N/A"}\n${article.description || ""}\n${article.content || ""}`
+      .map((a: any, i: number) =>
+        `${i + 1}. ${a.title}\nSource: ${a.source?.name || "Unknown"}\nAuthor: ${a.author || "N/A"}\n${a.description || ""}\n${a.content || ""}`
       )
       .join("\n\n");
 
-    const languageInstruction = language === "hindi" 
-      ? "सभी लेख, शीर्षक, विवरण और सामग्री केवल हिंदी भाषा में लिखें। (Write ALL summaries, titles, descriptions, and content in HINDI language only.)" 
-      : "Generate all content in English language.";
+    const langInstruction = language === "hindi"
+      ? "सभी लेख हिंदी में लिखें।"
+      : "Generate all content in English.";
 
-    // Summarize NewsAPI articles - concise pointwise format
-    const prompt = `${languageInstruction}
+    const prompt = `${langInstruction}
 
-Summarize the following news articles in a structured format with headings and subheadings.
+You are an expert current affairs editor for competitive exam aspirants (SSC, UPSC, Railway, Banking, State PCS).
 
-STRICT FORMATTING RULES:
-1. Keep the ORIGINAL source name and author from each article
-2. DO NOT use brackets or parentheses anywhere
-3. DO NOT include any exam relevance sections
-4. Keep it informative and factual
+Summarize the following news articles. Focus on WHY each article is important for exam preparation. Highlight facts, dates, names, and figures that could appear in exam questions.
+
+STRICT RULES:
+1. Keep ORIGINAL source name and author
+2. NO brackets or parentheses
+3. Keep it exam-focused and factual
 
 News Articles:
 ${newsContent}
 
 For each article provide:
-- title: Clear headline without brackets - max 100 chars
-- description: One sentence summary of what happened - max 150 chars
-- content: Use this EXACT structure with headings and bullet points:
+- title: Clear headline - max 100 chars
+- description: One sentence summary - max 150 chars
+- content: Use this structure:
 
 ## What Happened
-Write 2-3 sentences explaining the incident or event in detail. Describe who is involved and what occurred.
+2-3 sentences explaining the event.
 
-## Key Details
-• First important detail or fact
-• Second important detail or fact
-• Third important detail or fact
+## Key Facts for Exams
+• First important fact with specific data
+• Second important fact
+• Third important fact
 
-## Why It Matters
-Write 1-2 sentences explaining the significance and impact of this event.
+## Why It Matters for Exams
+1-2 sentences on exam relevance.
 
 ## Background
-Write 1-2 sentences providing context or background information if relevant.
+1-2 sentences of context.
 
-IMPORTANT: Each bullet point MUST be on a separate line starting with "• ". Never use commas to list multiple things in one point. Never use brackets.
+IMPORTANT: Each bullet on separate line starting with "• ". No brackets.
 
-- source: Keep the ORIGINAL source name
-- author: Keep the ORIGINAL author name
+- source: Keep ORIGINAL source name
+- author: Keep ORIGINAL author name
 
 Format as JSON array with keys: title description content source author
-
-Return ALL articles in the same order.`;
+Return ALL articles.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -193,79 +180,55 @@ Return ALL articles in the same order.`;
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+        messages: [{ role: "user", content: prompt }],
       }),
     });
 
-    if (!aiResponse.ok) {
-      throw new Error(`AI API error: ${aiResponse.status}`);
-    }
+    if (!aiResponse.ok) throw new Error(`AI API error: ${aiResponse.status}`);
 
     const aiData = await aiResponse.json();
     const generatedText = aiData.choices?.[0]?.message?.content || "[]";
-    
-    // Parse the AI response
+
     let articlesData;
     try {
       const jsonMatch = generatedText.match(/\[[\s\S]*\]/);
       articlesData = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
-    } catch (e) {
-      console.error("Failed to parse AI response, using fallback");
+    } catch {
+      console.error("Failed to parse AI response");
       articlesData = [];
     }
 
-    console.log(`Generated ${articlesData.length} summarized articles`);
-
-    // Format articles for database with original metadata
     const articles = articlesData.map((article: any, index: number) => {
-      const originalArticle = originalArticles[index] || {};
+      const orig = originalArticles[index] || {};
       return {
-        title: article.title || originalArticle.title || `Current Affairs Update ${index + 1}`,
-        description: article.description || originalArticle.description || "",
-        content: article.content || originalArticle.content || "",
-        source: article.source || originalArticle.source || "ExamPulse",
-        image_url: originalArticle.image_url || null,
+        title: article.title || orig.title || `Exam Update ${index + 1}`,
+        description: article.description || orig.description || "",
+        content: article.content || orig.content || "",
+        source: article.source || orig.source || "ExamPulse",
+        image_url: orig.image_url || null,
         category: "current-affairs",
         published_date: new Date().toISOString().split("T")[0],
-        language: language,
+        language,
       };
     });
 
-    // Insert articles into database
     if (articles.length > 0) {
       const { error: insertError } = await supabase
         .from("articles")
         .upsert(articles, { onConflict: "title", ignoreDuplicates: true });
-
-      if (insertError) {
-        console.error("Error inserting articles:", insertError);
-      } else {
-        console.log(`Successfully stored ${articles.length} articles`);
-      }
+      if (insertError) console.error("Insert error:", insertError);
+      else console.log(`Stored ${articles.length} exam-focused articles`);
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        articlesCount: articles.length,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, articlesCount: articles.length }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in fetch-news function:", error);
+    console.error("Error:", error);
     return new Response(
       JSON.stringify({ error: (error as Error).message || "Failed to generate news" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
