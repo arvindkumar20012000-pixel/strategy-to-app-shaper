@@ -242,26 +242,21 @@ const Auth = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={signupData.password}
-                        onChange={(e) =>
-                          setSignupData({ ...signupData, password: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="signup-password">Password</Label>
+                     <PasswordInput
+                       id="signup-password"
+                       placeholder="••••••••"
+                       value={signupData.password}
+                       onChange={(e) =>
+                         setSignupData({ ...signupData, password: e.target.value })
+                       }
+                       required
+                     />
+                     {errors.password && (
+                       <p className="text-sm text-destructive">{errors.password}</p>
+                     )}
+                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="signup-confirm">Confirm Password</Label>
