@@ -42,6 +42,17 @@ const Index = () => {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<"english" | "hindi">("english");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedArticleIndex, setSelectedArticleIndex] = useState(0);
+
+  const handleOpenArticle = useCallback((index: number) => {
+    setSelectedArticleIndex(index);
+    setDialogOpen(true);
+  }, []);
+
+  const handleNavigateArticle = useCallback((index: number) => {
+    setSelectedArticleIndex(index);
+  }, []);
 
   // Fetch articles only once when user logs in - no auto refresh
   useEffect(() => {
