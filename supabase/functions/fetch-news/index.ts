@@ -116,7 +116,7 @@ serve(async (req) => {
       description: a.description || "",
       content: a.content || "",
       source: a.source?.name || "Unknown",
-      author: a.author || "ExamPulse",
+      author: a.author || "StudyByte",
       url: a.url,
       image_url: a.urlToImage,
     }));
