@@ -26,6 +26,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
+import studyByteLogo from "@/assets/studybyte-logo.png";
 
 interface SideDrawerProps {
   isOpen: boolean;
