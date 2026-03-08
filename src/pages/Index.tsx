@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SideDrawer } from "@/components/SideDrawer";
 import { ArticleCard } from "@/components/ArticleCard";
+import { ArticleDetailDialog } from "@/components/ArticleDetailDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Filter } from "lucide-react";
