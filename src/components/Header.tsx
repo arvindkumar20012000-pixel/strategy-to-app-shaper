@@ -60,7 +60,9 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
                 <Search className="w-5 h-5" />
               </Button>
             )}
-            <NotificationsDialog />
+            <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
+              <Bell className="w-5 h-5" />
+            </Button>
           </div>
         </div>
       </header>
