@@ -52,7 +52,7 @@ export const AdBanner = ({ slot, format = "auto", className = "" }: AdBannerProp
         <ins
           className="adsbygoogle"
           style={{ display: "block" }}
-          data-ad-client="ca-pub-XXXXXXXXXX"
+          data-ad-client="ca-pub-6797322781710540"
           data-ad-slot={slot}
           data-ad-format={format}
           data-full-width-responsive="true"
@@ -108,7 +108,7 @@ export const InlineAd = ({ slot, className = "" }: { slot: string; className?: s
         <ins
           className="adsbygoogle"
           style={{ display: "block", textAlign: "center" }}
-          data-ad-client="ca-pub-XXXXXXXXXX"
+          data-ad-client="ca-pub-6797322781710540"
           data-ad-slot={slot}
           data-ad-layout="in-article"
           data-ad-format="fluid"
