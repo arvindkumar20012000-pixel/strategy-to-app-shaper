@@ -256,9 +256,9 @@ const TestResult = () => {
                 </div>
 
                 {answer.questions.explanation && (
-                  <div className="p-3 rounded-lg bg-accent">
-                    <p className="text-sm font-medium mb-1">Explanation:</p>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="p-4 rounded-lg border-l-4" style={{ background: 'hsl(210, 50%, 96%)', borderColor: 'hsl(210, 80%, 50%)' }}>
+                    <p className="text-sm font-bold mb-2" style={{ color: 'hsl(210, 80%, 35%)' }}>💡 Explanation:</p>
+                    <p className="text-sm leading-relaxed" style={{ color: 'hsl(222, 47%, 30%)' }}>
                       {answer.questions.explanation}
                     </p>
                   </div>
