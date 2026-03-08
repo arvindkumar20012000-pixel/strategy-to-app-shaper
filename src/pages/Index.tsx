@@ -369,16 +369,24 @@ const Index = () => {
               </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {articles.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    id={article.id}
-                    title={article.title}
-                    published_date={article.published_date}
-                    category={article.category}
-                    description={article.description || ""}
-                    image_url={article.image_url || heroBanner}
-                  />
+                {articles.map((article, idx) => (
+                  <>
+                    <ArticleCard
+                      key={article.id}
+                      id={article.id}
+                      title={article.title}
+                      published_date={article.published_date}
+                      category={article.category}
+                      description={article.description || ""}
+                      image_url={article.image_url || heroBanner}
+                    />
+                    {/* Show ad after every 4th article */}
+                    {(idx + 1) % 4 === 0 && idx < articles.length - 1 && (
+                      <div className="col-span-full">
+                        <InlineAd slot={`feed-${idx}`} />
+                      </div>
+                    )}
+                  </>
                 ))}
               </div>
             )}

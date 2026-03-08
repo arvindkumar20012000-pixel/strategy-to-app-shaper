@@ -202,6 +202,9 @@ const TestResult = () => {
           </CardContent>
         </Card>
 
+        {/* Ad after results summary */}
+        <AdBanner slot="test-result-top" className="mb-6" />
+
         {/* Detailed Solutions */}
         <h2 className="text-2xl font-bold mb-4">Detailed Solutions</h2>
         <div className="space-y-4">
