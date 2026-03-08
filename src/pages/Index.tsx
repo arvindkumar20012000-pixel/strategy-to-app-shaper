@@ -383,6 +383,7 @@ const Index = () => {
               <div className="grid gap-3 md:grid-cols-2">
                 {articles.map((article, idx) => (
                   <>
+                  <>
                     <ArticleCard
                       key={article.id}
                       id={article.id}
@@ -391,6 +392,7 @@ const Index = () => {
                       category={article.category}
                       description={article.description || ""}
                       image_url={article.image_url || heroBanner}
+                      onOpen={() => handleOpenArticle(idx)}
                     />
                     {/* Show ad after every 4th article */}
                     {(idx + 1) % 4 === 0 && idx < articles.length - 1 && (
@@ -405,6 +407,15 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <ArticleDetailDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        articleId={articles[selectedArticleIndex]?.id || null}
+        articles={articles}
+        currentIndex={selectedArticleIndex}
+        onNavigate={handleNavigateArticle}
+      />
 
       <BottomNav />
     </div>
