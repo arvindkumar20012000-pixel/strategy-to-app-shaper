@@ -137,16 +137,14 @@ export default function Admin() {
 
       <div className="pt-14 flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex w-56 shrink-0 border-r border-border h-[calc(100vh-3.5rem)] sticky top-14">
-          <ScrollArea className="w-full">
-            <div className="p-3 border-b border-border">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-primary" />
-                <h2 className="font-bold text-sm">Admin Panel</h2>
-              </div>
+        <aside className="hidden md:flex flex-col w-56 shrink-0 border-r border-border h-[calc(100vh-3.5rem)] sticky top-14">
+          <div className="p-3 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" />
+              <h2 className="font-bold text-sm">Admin Panel</h2>
             </div>
-            <SidebarNav />
-          </ScrollArea>
+          </div>
+          <SidebarNav />
         </aside>
 
         {/* Main Content */}
