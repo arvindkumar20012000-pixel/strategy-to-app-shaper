@@ -158,26 +158,30 @@ const Auth = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={loginData.password}
-                        onChange={(e) =>
-                          setLoginData({ ...loginData, password: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="login-password">Password</Label>
+                     <PasswordInput
+                       id="login-password"
+                       placeholder="••••••••"
+                       value={loginData.password}
+                       onChange={(e) =>
+                         setLoginData({ ...loginData, password: e.target.value })
+                       }
+                       required
+                     />
+                     {errors.password && (
+                       <p className="text-sm text-destructive">{errors.password}</p>
+                     )}
+                   </div>
+
+                   <Button 
+                     type="button" 
+                     variant="link" 
+                     className="px-0 h-auto text-sm"
+                     onClick={() => navigate("/forgot-password")}
+                   >
+                     Forgot password?
+                   </Button>
 
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Signing in..." : "Sign In"}
