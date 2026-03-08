@@ -208,6 +208,7 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
             Upgrade Now
           </Button>
         </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
