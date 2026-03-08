@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SideDrawer } from "@/components/SideDrawer";
 import { ArticleCard } from "@/components/ArticleCard";
+import { ArticleDetailDialog } from "@/components/ArticleDetailDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Filter } from "lucide-react";
@@ -41,6 +42,17 @@ const Index = () => {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<"english" | "hindi">("english");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedArticleIndex, setSelectedArticleIndex] = useState(0);
+
+  const handleOpenArticle = useCallback((index: number) => {
+    setSelectedArticleIndex(index);
+    setDialogOpen(true);
+  }, []);
+
+  const handleNavigateArticle = useCallback((index: number) => {
+    setSelectedArticleIndex(index);
+  }, []);
 
   // Fetch articles only once when user logs in - no auto refresh
   useEffect(() => {
@@ -379,6 +391,7 @@ const Index = () => {
                       category={article.category}
                       description={article.description || ""}
                       image_url={article.image_url || heroBanner}
+                      onOpen={() => handleOpenArticle(idx)}
                     />
                     {/* Show ad after every 4th article */}
                     {(idx + 1) % 4 === 0 && idx < articles.length - 1 && (
@@ -393,6 +406,15 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <ArticleDetailDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        articleId={articles[selectedArticleIndex]?.id || null}
+        articles={articles}
+        currentIndex={selectedArticleIndex}
+        onNavigate={handleNavigateArticle}
+      />
 
       <BottomNav />
     </div>

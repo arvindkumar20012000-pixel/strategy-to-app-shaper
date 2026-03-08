@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { Bookmark, Clock, Share2, Calendar, ExternalLink } from "lucide-react";
+import { Bookmark, Clock, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -17,17 +16,7 @@ export interface ArticleCardProps {
   published_date: string;
   category: string;
   onBookmarkToggle?: () => void;
-}
-
-interface ArticleDetails {
-  id: string;
-  title: string;
-  description: string | null;
-  content: string | null;
-  category: string;
-  published_date: string;
-  image_url: string | null;
-  source: string | null;
+  onOpen?: () => void;
 }
 
 export const ArticleCard = ({
@@ -38,11 +27,9 @@ export const ArticleCard = ({
   published_date,
   category,
   onBookmarkToggle,
+  onOpen,
 }: ArticleCardProps) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [articleDetails, setArticleDetails] = useState<ArticleDetails | null>(null);
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -59,31 +46,14 @@ export const ArticleCard = ({
         .eq("article_id", id)
         .eq("user_id", user?.id)
         .maybeSingle();
-
       setIsBookmarked(!!data);
     } catch (error) {
       console.error("Error checking bookmark:", error);
     }
   };
 
-  const handleCardClick = async () => {
-    setLoading(true);
-    setDialogOpen(true);
-    try {
-      const { data, error } = await supabase
-        .from("articles")
-        .select("*")
-        .eq("id", id)
-        .single();
-      
-      if (error) throw error;
-      setArticleDetails(data);
-    } catch (error) {
-      console.error("Error fetching article:", error);
-      toast.error("Failed to load article details");
-    } finally {
-      setLoading(false);
-    }
+  const handleCardClick = () => {
+    onOpen?.();
   };
 
   const handleBookmark = async (e?: React.MouseEvent) => {
@@ -100,18 +70,15 @@ export const ArticleCard = ({
           .delete()
           .eq("article_id", id)
           .eq("user_id", user.id);
-
         if (error) throw error;
         toast.success("Bookmark removed");
       } else {
         const { error } = await supabase
           .from("bookmarks")
           .insert({ article_id: id, user_id: user.id });
-
         if (error) throw error;
         toast.success("Article bookmarked");
       }
-
       setIsBookmarked(!isBookmarked);
       onBookmarkToggle?.();
     } catch (error: any) {
@@ -130,144 +97,34 @@ export const ArticleCard = ({
   };
 
   return (
-    <>
-      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer w-full max-w-full" onClick={handleCardClick}>
-        {image_url && (
-          <div className="h-36 sm:h-40 overflow-hidden">
-            <img
-              src={image_url}
-              alt={title}
-              className="w-full h-full object-cover"
-            />
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer w-full max-w-full" onClick={handleCardClick}>
+      {image_url && (
+        <div className="h-36 sm:h-40 overflow-hidden">
+          <img src={image_url} alt={title} className="w-full h-full object-cover" />
+        </div>
+      )}
+      <CardHeader className="space-y-1.5 p-3 pb-2">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <Badge variant="secondary" className="text-xs shrink-0">{category}</Badge>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
+            <Clock className="w-3 h-3" />
+            {format(new Date(published_date), "MMM dd, yyyy")}
           </div>
-        )}
-        <CardHeader className="space-y-1.5 p-3 pb-2">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <Badge variant="secondary" className="text-xs shrink-0">{category}</Badge>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
-              <Clock className="w-3 h-3" />
-              {format(new Date(published_date), "MMM dd, yyyy")}
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold line-clamp-2 break-words">{title}</h3>
-        </CardHeader>
-        <CardContent className="p-3 pt-0">
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3 break-words">{description}</p>
-          <div className="flex gap-2">
-            <Button onClick={handleBookmark} variant="outline" size="sm" className="flex-1 min-w-0">
-              <Bookmark className={`w-4 h-4 mr-2 shrink-0 ${isBookmarked ? "fill-primary" : ""}`} />
-              <span className="truncate">{isBookmarked ? "Saved" : "Save"}</span>
-            </Button>
-            <Button onClick={handleShare} variant="outline" size="sm" className="shrink-0">
-              <Share2 className="w-4 h-4" />
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Article Details Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto w-[calc(100vw-2rem)]">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin w-12 h-12 border-4 border-primary border-t-transparent rounded-full"></div>
-            </div>
-          ) : articleDetails ? (
-            <>
-              <DialogHeader>
-                <div className="space-y-3">
-                  <Badge className="w-fit">{articleDetails.category}</Badge>
-                  <DialogTitle className="text-2xl leading-tight break-words">{articleDetails.title}</DialogTitle>
-                  {articleDetails.description && (
-                    <DialogDescription className="text-base break-words">
-                      {articleDetails.description}
-                    </DialogDescription>
-                  )}
-                </div>
-              </DialogHeader>
-              
-              {articleDetails.image_url && (
-                <img 
-                  src={articleDetails.image_url} 
-                  alt={articleDetails.title}
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-              )}
-
-              <div className="space-y-4">
-                {articleDetails.content && (
-                  <div className="prose prose-sm max-w-none dark:prose-invert">
-                    {articleDetails.content.split('\n').map((line, index) => {
-                      const trimmedLine = line.trim();
-                      if (!trimmedLine) return <div key={index} className="h-2" />;
-                      
-                      // Handle markdown headings
-                      if (trimmedLine.startsWith('## ')) {
-                        return (
-                          <h3 key={index} className="text-lg font-semibold text-foreground mt-4 mb-2">
-                            {trimmedLine.replace('## ', '')}
-                          </h3>
-                        );
-                      }
-                      if (trimmedLine.startsWith('# ')) {
-                        return (
-                          <h2 key={index} className="text-xl font-bold text-foreground mt-4 mb-2">
-                            {trimmedLine.replace('# ', '')}
-                          </h2>
-                        );
-                      }
-                      
-                      // Handle bullet points
-                      if (trimmedLine.startsWith('• ') || trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
-                        return (
-                          <div key={index} className="flex items-start gap-2 ml-2">
-                            <span className="text-primary mt-0.5">•</span>
-                            <span className="text-foreground">
-                              {trimmedLine.replace(/^[•\-\*]\s*/, '')}
-                            </span>
-                          </div>
-                        );
-                      }
-                      
-                      // Regular paragraph
-                      return (
-                        <p key={index} className="text-foreground break-words">
-                          {trimmedLine}
-                        </p>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4 border-t text-sm text-muted-foreground">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                    {articleDetails.source && (
-                      <div className="flex items-center gap-1">
-                        <ExternalLink className="w-4 h-4 shrink-0" />
-                        <span className="truncate">Source: {articleDetails.source}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4 shrink-0" />
-                      <span>{format(new Date(articleDetails.published_date), "MMMM dd, yyyy")}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handleBookmark}>
-                      <Bookmark className={`w-4 h-4 mr-1 ${isBookmarked ? "fill-current" : ""}`} />
-                      {isBookmarked ? "Saved" : "Save"}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleShare}>
-                      <Share2 className="w-4 h-4 mr-1" />
-                      Share
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </DialogContent>
-      </Dialog>
-    </>
+        </div>
+        <h3 className="text-lg font-semibold line-clamp-2 break-words">{title}</h3>
+      </CardHeader>
+      <CardContent className="p-3 pt-0">
+        <p className="text-sm text-muted-foreground line-clamp-2 mb-3 break-words">{description}</p>
+        <div className="flex gap-2">
+          <Button onClick={handleBookmark} variant="outline" size="sm" className="flex-1 min-w-0">
+            <Bookmark className={`w-4 h-4 mr-2 shrink-0 ${isBookmarked ? "fill-primary" : ""}`} />
+            <span className="truncate">{isBookmarked ? "Saved" : "Save"}</span>
+          </Button>
+          <Button onClick={handleShare} variant="outline" size="sm" className="shrink-0">
+            <Share2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
