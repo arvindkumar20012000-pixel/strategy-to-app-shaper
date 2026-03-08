@@ -92,7 +92,7 @@ export const InstallPrompt = () => {
                 <div>
                   <p className="font-medium">3. Tap "Add"</p>
                   <p className="text-sm text-muted-foreground">
-                    ExamPulse will appear on your home screen
+                    StudyByte will appear on your home screen
                   </p>
                 </div>
               </div>
