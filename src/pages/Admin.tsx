@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { SideDrawer } from "@/components/SideDrawer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Loader2, Shield, FileText, Bell, MessageSquare } from "lucide-react";
+import {
+  Loader2, Shield, FileText, Bell, MessageSquare, Settings,
+  Image, BookOpen, ClipboardList, GraduationCap, Users, LayoutDashboard,
+} from "lucide-react";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { ArticleManagement } from "@/components/admin/ArticleManagement";
 import { TestManagement } from "@/components/admin/TestManagement";
@@ -16,10 +18,31 @@ import { NotificationManagement } from "@/components/admin/NotificationManagemen
 import { PreviousYearQuestions } from "@/components/admin/PreviousYearQuestions";
 import { BannerManagement } from "@/components/admin/BannerManagement";
 import { ContentRequestsManagement } from "@/components/admin/ContentRequestsManagement";
+import { UserManagement } from "@/components/admin/UserManagement";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+
+const adminSections = [
+  { id: "settings", label: "Settings", icon: Settings },
+  { id: "users", label: "Users", icon: Users },
+  { id: "banners", label: "Banners", icon: Image },
+  { id: "articles", label: "Articles", icon: FileText },
+  { id: "tests", label: "Tests", icon: ClipboardList },
+  { id: "exams", label: "Exam Types", icon: GraduationCap },
+  { id: "ncert", label: "NCERT", icon: BookOpen },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "previous-papers", label: "PYQs", icon: FileText },
+  { id: "requests", label: "Requests", icon: MessageSquare },
+];
 
 export default function Admin() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [activeSection, setActiveSection] = useState("settings");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -58,82 +81,104 @@ export default function Admin() {
 
   if (isAdmin === null) {
     return (
-      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
 
+  const renderContent = () => {
+    switch (activeSection) {
+      case "settings": return <AdminSettings />;
+      case "users": return <UserManagement />;
+      case "banners": return <BannerManagement />;
+      case "articles": return <ArticleManagement />;
+      case "tests": return <TestManagement />;
+      case "exams": return <ExamCategories />;
+      case "ncert": return <NCERTManagement />;
+      case "notifications": return <NotificationManagement />;
+      case "previous-papers": return <PreviousYearQuestions />;
+      case "requests": return <ContentRequestsManagement />;
+      default: return <AdminSettings />;
+    }
+  };
+
+  const SidebarNav = ({ onItemClick }: { onItemClick?: () => void }) => (
+    <nav className="space-y-1 p-2">
+      {adminSections.map((section) => {
+        const Icon = section.icon;
+        const isActive = activeSection === section.id;
+        return (
+          <button
+            key={section.id}
+            onClick={() => {
+              setActiveSection(section.id);
+              onItemClick?.();
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <Icon className="w-4 h-4 shrink-0" />
+            <span>{section.label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setIsDrawerOpen(true)} />
       <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
-      <main className="max-w-screen-xl mx-auto px-3 pt-16 pb-4">
-        <div className="flex items-center gap-2 mb-6">
-          <Shield className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold">Admin Panel</h1>
-        </div>
+      <div className="pt-14 flex">
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:flex w-56 shrink-0 border-r border-border h-[calc(100vh-3.5rem)] sticky top-14">
+          <ScrollArea className="w-full">
+            <div className="p-3 border-b border-border">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                <h2 className="font-bold text-sm">Admin Panel</h2>
+              </div>
+            </div>
+            <SidebarNav />
+          </ScrollArea>
+        </aside>
 
-        <Tabs defaultValue="settings" className="w-full">
-          <TabsList className="grid w-full grid-cols-9">
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="banners">Banners</TabsTrigger>
-            <TabsTrigger value="articles">Articles</TabsTrigger>
-            <TabsTrigger value="tests">Tests</TabsTrigger>
-            <TabsTrigger value="exams">Exam Types</TabsTrigger>
-            <TabsTrigger value="ncert">NCERT</TabsTrigger>
-            <TabsTrigger value="notifications">
-              <Bell className="h-4 w-4 mr-1" />
-              Notifs
-            </TabsTrigger>
-            <TabsTrigger value="previous-papers">
-              <FileText className="h-4 w-4 mr-1" />
-              PYQs
-            </TabsTrigger>
-            <TabsTrigger value="requests">
-              <MessageSquare className="h-4 w-4 mr-1" />
-              Requests
-            </TabsTrigger>
-          </TabsList>
+        {/* Main Content */}
+        <main className="flex-1 min-w-0">
+          {/* Mobile header with sidebar trigger */}
+          <div className="md:hidden flex items-center gap-2 p-3 border-b border-border">
+            <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="shrink-0">
+                  <LayoutDashboard className="w-4 h-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-56 p-0">
+                <div className="p-3 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    <h2 className="font-bold text-sm">Admin Panel</h2>
+                  </div>
+                </div>
+                <SidebarNav onItemClick={() => setMobileSidebarOpen(false)} />
+              </SheetContent>
+            </Sheet>
+            <h2 className="font-semibold text-sm capitalize">
+              {adminSections.find((s) => s.id === activeSection)?.label}
+            </h2>
+          </div>
 
-          <TabsContent value="settings">
-            <AdminSettings />
-          </TabsContent>
-
-          <TabsContent value="banners">
-            <BannerManagement />
-          </TabsContent>
-
-          <TabsContent value="articles">
-            <ArticleManagement />
-          </TabsContent>
-
-          <TabsContent value="tests">
-            <TestManagement />
-          </TabsContent>
-
-          <TabsContent value="exams">
-            <ExamCategories />
-          </TabsContent>
-
-          <TabsContent value="ncert">
-            <NCERTManagement />
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <NotificationManagement />
-          </TabsContent>
-
-          <TabsContent value="previous-papers">
-            <PreviousYearQuestions />
-          </TabsContent>
-
-          <TabsContent value="requests">
-            <ContentRequestsManagement />
-          </TabsContent>
-        </Tabs>
-      </main>
+          <div className="p-4 max-w-5xl">
+            {renderContent()}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
