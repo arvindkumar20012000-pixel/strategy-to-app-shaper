@@ -57,9 +57,9 @@ export const InstallPrompt = () => {
         <Dialog open={showIOSDialog} onOpenChange={setShowIOSDialog}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Install ExamPulse on iOS</DialogTitle>
+               <DialogTitle>Install StudyByte on iOS</DialogTitle>
               <DialogDescription>
-                Follow these steps to add ExamPulse to your home screen:
+                Follow these steps to add StudyByte to your home screen:
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
