@@ -13,6 +13,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps) => {
+  const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
