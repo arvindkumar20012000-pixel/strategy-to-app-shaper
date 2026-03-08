@@ -3,7 +3,8 @@ import { Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { NotificationsDialog } from "@/components/NotificationsDialog";
+import { useNavigate } from "react-router-dom";
+import { Bell } from "lucide-react";
 
 interface HeaderProps {
   onMenuClick: () => void;
