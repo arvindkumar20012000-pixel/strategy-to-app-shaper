@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Mail, Lock, User, Download, X } from "lucide-react";
+import { BookOpen, Mail, User, Download, X } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { PasswordInput } from "@/components/PasswordInput";
+import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -25,6 +27,7 @@ const signupSchema = loginSchema.extend({
 const Auth = () => {
   const { signIn, signUp } = useAuth();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -156,26 +159,30 @@ const Auth = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={loginData.password}
-                        onChange={(e) =>
-                          setLoginData({ ...loginData, password: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="login-password">Password</Label>
+                     <PasswordInput
+                       id="login-password"
+                       placeholder="••••••••"
+                       value={loginData.password}
+                       onChange={(e) =>
+                         setLoginData({ ...loginData, password: e.target.value })
+                       }
+                       required
+                     />
+                     {errors.password && (
+                       <p className="text-sm text-destructive">{errors.password}</p>
+                     )}
+                   </div>
+
+                   <Button 
+                     type="button" 
+                     variant="link" 
+                     className="px-0 h-auto text-sm"
+                     onClick={() => navigate("/forgot-password")}
+                   >
+                     Forgot password?
+                   </Button>
 
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Signing in..." : "Sign In"}
@@ -235,52 +242,42 @@ const Auth = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={signupData.password}
-                        onChange={(e) =>
-                          setSignupData({ ...signupData, password: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="signup-password">Password</Label>
+                     <PasswordInput
+                       id="signup-password"
+                       placeholder="••••••••"
+                       value={signupData.password}
+                       onChange={(e) =>
+                         setSignupData({ ...signupData, password: e.target.value })
+                       }
+                       required
+                     />
+                     {errors.password && (
+                       <p className="text-sm text-destructive">{errors.password}</p>
+                     )}
+                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-confirm"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={signupData.confirmPassword}
-                        onChange={(e) =>
-                          setSignupData({
-                            ...signupData,
-                            confirmPassword: e.target.value,
-                          })
-                        }
-                        required
-                      />
-                    </div>
-                    {errors.confirmPassword && (
-                      <p className="text-sm text-destructive">
-                        {errors.confirmPassword}
-                      </p>
-                    )}
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="signup-confirm">Confirm Password</Label>
+                     <PasswordInput
+                       id="signup-confirm"
+                       placeholder="••••••••"
+                       value={signupData.confirmPassword}
+                       onChange={(e) =>
+                         setSignupData({
+                           ...signupData,
+                           confirmPassword: e.target.value,
+                         })
+                       }
+                       required
+                     />
+                     {errors.confirmPassword && (
+                       <p className="text-sm text-destructive">
+                         {errors.confirmPassword}
+                       </p>
+                     )}
+                   </div>
 
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Creating account..." : "Create Account"}

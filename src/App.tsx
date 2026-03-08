@@ -12,6 +12,7 @@ import NCERT from "./pages/NCERT";
 import PreviousPapers from "./pages/PreviousPapers";
 import MockTest from "./pages/MockTest";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
 import TestTaking from "./pages/TestTaking";
 import TestResult from "./pages/TestResult";
 import ExamInstructions from "./pages/ExamInstructions";
@@ -46,6 +47,7 @@ const App = () => (
             <div className="overflow-x-hidden w-full">
               <Routes>
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/install" element={<Install />} />
                 <Route
                   path="/"
