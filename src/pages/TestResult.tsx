@@ -17,6 +17,7 @@ import {
   Target,
   Home,
 } from "lucide-react";
+import { AdBanner } from "@/components/AdBanner";
 
 interface TestAttempt {
   id: string;
