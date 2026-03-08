@@ -17,6 +17,7 @@ import {
   Target,
   Home,
 } from "lucide-react";
+import { AdBanner } from "@/components/AdBanner";
 
 interface TestAttempt {
   id: string;
@@ -200,6 +201,9 @@ const TestResult = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Ad after results summary */}
+        <AdBanner slot="test-result-top" className="mb-6" />
 
         {/* Detailed Solutions */}
         <h2 className="text-2xl font-bold mb-4">Detailed Solutions</h2>

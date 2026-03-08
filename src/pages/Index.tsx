@@ -6,6 +6,7 @@ import { ArticleCard } from "@/components/ArticleCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Filter } from "lucide-react";
+import { AdBanner, InlineAd } from "@/components/AdBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -368,16 +369,24 @@ const Index = () => {
               </div>
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
-                {articles.map((article) => (
-                  <ArticleCard
-                    key={article.id}
-                    id={article.id}
-                    title={article.title}
-                    published_date={article.published_date}
-                    category={article.category}
-                    description={article.description || ""}
-                    image_url={article.image_url || heroBanner}
-                  />
+                {articles.map((article, idx) => (
+                  <>
+                    <ArticleCard
+                      key={article.id}
+                      id={article.id}
+                      title={article.title}
+                      published_date={article.published_date}
+                      category={article.category}
+                      description={article.description || ""}
+                      image_url={article.image_url || heroBanner}
+                    />
+                    {/* Show ad after every 4th article */}
+                    {(idx + 1) % 4 === 0 && idx < articles.length - 1 && (
+                      <div className="col-span-full">
+                        <InlineAd slot={`feed-${idx}`} />
+                      </div>
+                    )}
+                  </>
                 ))}
               </div>
             )}
