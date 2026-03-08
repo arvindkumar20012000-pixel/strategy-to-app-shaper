@@ -333,15 +333,6 @@ const Index = () => {
                   हिंदी
                 </Button>
               </div>
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={handleManualRefresh}
-                disabled={loading}
-                title="Refresh News"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="icon" title="Filter by Category">
