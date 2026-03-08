@@ -206,7 +206,7 @@ const MockTest = () => {
       <Header onMenuClick={() => setDrawerOpen(true)} showSearch={false} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6 w-full">
+      <main className="max-w-screen-xl mx-auto px-3 pt-16 pb-4 w-full">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <Brain className="w-12 h-12 text-primary" />
