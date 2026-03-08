@@ -69,7 +69,7 @@ export default function Admin() {
       <Header onMenuClick={() => setIsDrawerOpen(true)} />
       <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
-      <main className="container mx-auto px-4 pt-20 pb-24">
+      <main className="max-w-screen-xl mx-auto px-3 pt-16 pb-4">
         <div className="flex items-center gap-2 mb-6">
           <Shield className="w-6 h-6 text-primary" />
           <h1 className="text-2xl font-bold">Admin Panel</h1>
