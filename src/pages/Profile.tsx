@@ -150,7 +150,7 @@ const Profile = () => {
       <Header onMenuClick={() => setDrawerOpen(true)} showSearch={false} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
+      <main className="max-w-4xl mx-auto px-3 pt-16 pb-4">
         {/* Profile Header */}
         <Card className="mb-6">
           <CardContent className="pt-6">

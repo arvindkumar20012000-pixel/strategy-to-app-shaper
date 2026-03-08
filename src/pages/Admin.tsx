@@ -65,7 +65,7 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-background pb-20">
       <Header onMenuClick={() => setIsDrawerOpen(true)} />
       <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
