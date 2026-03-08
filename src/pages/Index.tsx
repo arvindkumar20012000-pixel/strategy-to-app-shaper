@@ -306,7 +306,7 @@ const Index = () => {
             >
               <div className="absolute inset-0 bg-gradient-primary opacity-90" />
               <div className="relative h-full flex flex-col justify-center items-center text-white text-center p-6">
-                <h2 className="text-3xl font-bold mb-2">Welcome to ExamPulse</h2>
+                <h2 className="text-3xl font-bold mb-2">Welcome to StudyByte</h2>
                 <p className="text-white/90 max-w-md">
                   Your daily dose of current affairs and exam preparation
                 </p>

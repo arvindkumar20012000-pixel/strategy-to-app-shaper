@@ -68,7 +68,7 @@ export default function Privacy() {
               <h2 className="text-xl font-semibold mb-3">6. Contact Us</h2>
               <p className="text-muted-foreground">
                 If you have any questions about this Privacy Policy, please contact us at
-                privacy@exampulse.com
+                privacy@studybyte.com
               </p>
             </section>
           </Card>

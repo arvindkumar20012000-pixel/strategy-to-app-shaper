@@ -115,7 +115,7 @@ const Auth = () => {
               <BookOpen className="w-8 h-8 text-primary" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome to ExamPulse</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome to StudyByte</h1>
           <p className="text-white/90">Your daily exam preparation companion</p>
         </div>
 

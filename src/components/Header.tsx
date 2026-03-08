@@ -46,10 +46,10 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
             </Button>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">EP</span>
+                <span className="text-white font-bold text-sm">SB</span>
               </div>
               <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                ExamPulse
+                StudyByte
               </h1>
             </div>
           </div>

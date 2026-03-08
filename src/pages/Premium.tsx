@@ -139,7 +139,7 @@ export default function Premium() {
         key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'Exam Prep Pro',
+        name: 'StudyByte',
         description: `${plan.name} Subscription`,
         order_id: orderData.orderId,
         handler: async (response: any) => {

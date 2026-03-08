@@ -115,7 +115,7 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
               <div>
                 <div className="text-lg font-bold">StudyByte</div>
                 <div className="text-sm text-muted-foreground truncate">
-                  {user?.email || "Your Exam Partner"}
+                  {user?.email || "Your Study Partner"}
                 </div>
               </div>
             </div>

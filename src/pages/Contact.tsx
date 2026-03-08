@@ -52,7 +52,7 @@ export default function Contact() {
                 <Mail className="w-5 h-5 text-primary" />
                 <div>
                   <p className="font-semibold">Email</p>
-                  <p className="text-sm text-muted-foreground">support@exampulse.com</p>
+                  <p className="text-sm text-muted-foreground">support@studybyte.com</p>
                 </div>
               </div>
             </Card>
