@@ -4,17 +4,13 @@ import { BottomNav } from "@/components/BottomNav";
 import { SideDrawer } from "@/components/SideDrawer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Crown, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Check, Crown, Loader2, Copy, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+import { Badge } from "@/components/ui/badge";
 
 interface Plan {
   name: string;
@@ -61,135 +57,98 @@ const plans: Plan[] = [
   },
 ];
 
+const UPI_ID = "7897781415-3@ybl";
+
 export default function Premium() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [loading, setLoading] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [utrNumber, setUtrNumber] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    // Load Razorpay script
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    // Fetch current subscription
     if (user) {
       fetchSubscription();
+      fetchPaymentRequests();
     }
-
-    return () => {
-      document.body.removeChild(script);
-    };
   }, [user]);
 
   const fetchSubscription = async () => {
     try {
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user?.id)
-        .eq('status', 'active')
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", user?.id)
+        .eq("status", "active")
         .single();
-
       if (data && new Date(data.end_date) > new Date()) {
         setCurrentSubscription(data);
       }
-    } catch (error) {
-      console.error('Error fetching subscription:', error);
-    }
+    } catch {}
   };
 
-  const handleSubscribe = async (plan: Plan) => {
-    if (!user) {
-      toast.error('Please login to subscribe');
-      navigate('/auth');
-      return;
-    }
-
-    if (currentSubscription) {
-      toast.info('You already have an active subscription');
-      return;
-    }
-
-    setLoading(plan.planType);
-
+  const fetchPaymentRequests = async () => {
     try {
-      // Create Razorpay order
-      const { data: orderData, error: orderError } = await supabase.functions.invoke(
-        'create-razorpay-order',
-        {
-          body: {
-            planType: plan.planType,
-            amount: plan.amount,
-          },
-        }
-      );
+      const { data } = await supabase
+        .from("payment_requests")
+        .select("*")
+        .eq("user_id", user?.id!)
+        .order("created_at", { ascending: false });
+      setPaymentRequests(data || []);
+    } catch {}
+  };
 
-      if (orderError || orderData?.error) {
-        throw new Error(orderData?.error || 'Failed to create order');
-      }
+  const copyUPI = () => {
+    navigator.clipboard.writeText(UPI_ID);
+    toast.success("UPI ID copied!");
+  };
 
-      console.log('Order created:', orderData);
+  const handleSubmitUTR = async () => {
+    if (!user || !selectedPlan) return;
+    if (!utrNumber.trim() || utrNumber.trim().length < 6) {
+      toast.error("Please enter a valid UTR number");
+      return;
+    }
 
-      // Open Razorpay checkout
-      const options = {
-        key: orderData.keyId,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'StudyByte',
-        description: `${plan.name} Subscription`,
-        order_id: orderData.orderId,
-        handler: async (response: any) => {
-          console.log('Payment successful:', response);
-          
-          // Verify payment on server
-          const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
-            'verify-razorpay-payment',
-            {
-              body: {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                planType: plan.planType,
-                amount: plan.amount,
-                userId: user.id,
-              },
-            }
-          );
-
-          if (verifyError || verifyData?.error) {
-            toast.error('Payment verification failed');
-            return;
-          }
-
-          toast.success('Subscription activated successfully!');
-          fetchSubscription();
-        },
-        prefill: {
-          email: user.email,
-        },
-        theme: {
-          color: '#6366f1',
-        },
-        modal: {
-          ondismiss: () => {
-            setLoading(null);
-          },
-        },
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("payment_requests").insert({
+        user_id: user.id,
+        plan_type: selectedPlan.planType,
+        amount: selectedPlan.amount,
+        utr_number: utrNumber.trim(),
+      });
+      if (error) throw error;
+      toast.success("Payment submitted for verification! You'll be upgraded within 24 hours.");
+      setUtrNumber("");
+      setSelectedPlan(null);
+      fetchPaymentRequests();
     } catch (error: any) {
-      console.error('Subscription error:', error);
-      toast.error(error.message || 'Failed to start subscription');
+      toast.error("Failed to submit payment request");
     } finally {
-      setLoading(null);
+      setSubmitting(false);
     }
   };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "approved": return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+      case "rejected": return <XCircle className="w-4 h-4 text-red-500" />;
+      default: return <Clock className="w-4 h-4 text-yellow-500" />;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved": return <Badge className="bg-green-500/10 text-green-600 border-green-500/30">Approved</Badge>;
+      case "rejected": return <Badge className="bg-red-500/10 text-red-600 border-red-500/30">Rejected</Badge>;
+      default: return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30">Pending</Badge>;
+    }
+  };
+
+  const hasPendingRequest = paymentRequests.some(r => r.status === "pending");
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -197,75 +156,158 @@ export default function Premium() {
       <SideDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
       <main className="max-w-screen-xl mx-auto px-3 pt-16 pb-4">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <Crown className="w-8 h-8 text-secondary" />
-            <h1 className="text-3xl font-bold">Upgrade to Premium</h1>
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 mb-3">
+            <Crown className="w-7 h-7 text-secondary" />
+            <h1 className="text-2xl font-bold">Upgrade to Premium</h1>
           </div>
-          <p className="text-muted-foreground">
-            Unlock unlimited access to all features and boost your exam preparation
+          <p className="text-sm text-muted-foreground">
+            Unlock unlimited access to all features
           </p>
         </div>
 
         {currentSubscription && (
-          <Card className="p-4 mb-6 max-w-md mx-auto bg-secondary/10 border-secondary">
+          <Card className="p-4 mb-6 max-w-md mx-auto bg-green-500/10 border-green-500/30">
             <div className="flex items-center gap-2">
-              <Crown className="w-5 h-5 text-secondary" />
-              <span className="font-semibold">Active Subscription</span>
+              <Crown className="w-5 h-5 text-green-600" />
+              <span className="font-semibold text-green-600">Active Premium</span>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              {currentSubscription.plan_type.charAt(0).toUpperCase() + currentSubscription.plan_type.slice(1)} plan • 
-              Expires: {new Date(currentSubscription.end_date).toLocaleDateString()}
+              {currentSubscription.plan_type} plan • Expires: {new Date(currentSubscription.end_date).toLocaleDateString()}
             </p>
           </Card>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          {plans.map((plan) => (
-            <Card
-              key={plan.name}
-              className={`p-6 ${
-                plan.popular ? "border-secondary shadow-lg" : ""
-              }`}
-            >
-              {plan.popular && (
-                <div className="bg-secondary text-secondary-foreground text-sm font-semibold px-3 py-1 rounded-full inline-block mb-4">
-                  Most Popular
-                </div>
-              )}
-              <h2 className="text-2xl font-bold mb-2">{plan.name}</h2>
-              <div className="mb-6">
-                <span className="text-4xl font-bold">{plan.price}</span>
-                <span className="text-muted-foreground ml-2">{plan.period}</span>
-              </div>
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2">
-                    <Check className="w-5 h-5 text-secondary flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className="w-full"
-                variant={plan.popular ? "default" : "outline"}
-                onClick={() => handleSubscribe(plan)}
-                disabled={loading !== null || !!currentSubscription}
+        {/* Plan Selection */}
+        {!selectedPlan ? (
+          <div className="grid gap-4 max-w-lg mx-auto">
+            {plans.map((plan) => (
+              <Card
+                key={plan.name}
+                className={`p-5 cursor-pointer transition-all hover:shadow-md ${
+                  plan.popular ? "border-secondary shadow-sm" : ""
+                }`}
+                onClick={() => !currentSubscription && !hasPendingRequest && setSelectedPlan(plan)}
               >
-                {loading === plan.planType ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : currentSubscription ? (
-                  'Already Subscribed'
-                ) : (
-                  'Subscribe Now'
+                {plan.popular && (
+                  <Badge className="bg-secondary text-secondary-foreground mb-3">Most Popular</Badge>
                 )}
-              </Button>
-            </Card>
-          ))}
-        </div>
+                <div className="flex items-baseline justify-between mb-4">
+                  <div>
+                    <h2 className="text-xl font-bold">{plan.name}</h2>
+                    <p className="text-muted-foreground text-sm">{plan.period}</p>
+                  </div>
+                  <span className="text-3xl font-bold">{plan.price}</span>
+                </div>
+                <ul className="space-y-2 mb-4">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2 text-sm">
+                      <Check className="w-4 h-4 text-secondary flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="w-full"
+                  variant={plan.popular ? "default" : "outline"}
+                  disabled={!!currentSubscription || hasPendingRequest}
+                >
+                  {currentSubscription ? "Already Premium" : hasPendingRequest ? "Verification Pending" : "Select Plan"}
+                </Button>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          /* Payment Flow */
+          <Card className="p-5 max-w-lg mx-auto">
+            <button
+              onClick={() => setSelectedPlan(null)}
+              className="text-sm text-primary mb-4 hover:underline"
+            >
+              ← Back to plans
+            </button>
+
+            <h2 className="text-lg font-bold mb-1">Pay via UPI</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              {selectedPlan.name} Plan — <span className="font-semibold">{selectedPlan.price}</span> {selectedPlan.period}
+            </p>
+
+            {/* Step 1: UPI ID */}
+            <div className="bg-muted/50 rounded-lg p-4 mb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-2">STEP 1: Send payment to this UPI ID</p>
+              <div className="flex items-center gap-2 bg-background rounded-md p-3 border">
+                <span className="font-mono font-semibold text-sm flex-1 break-all">{UPI_ID}</span>
+                <Button size="sm" variant="outline" onClick={copyUPI} className="shrink-0">
+                  <Copy className="w-3.5 h-3.5 mr-1" /> Copy
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Amount: <span className="font-bold">{selectedPlan.price}</span> — Pay using any UPI app (GPay, PhonePe, Paytm, etc.)
+              </p>
+            </div>
+
+            {/* Step 2: UTR */}
+            <div className="mb-4">
+              <p className="text-xs font-medium text-muted-foreground mb-2">STEP 2: Enter your UTR/Transaction Reference Number</p>
+              <Label htmlFor="utr" className="text-sm mb-1.5 block">UTR Number</Label>
+              <Input
+                id="utr"
+                placeholder="Enter 12-digit UTR number"
+                value={utrNumber}
+                onChange={(e) => setUtrNumber(e.target.value)}
+                maxLength={30}
+              />
+              <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
+                <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
+                You can find the UTR number in your UPI app's transaction history
+              </p>
+            </div>
+
+            <Button
+              className="w-full"
+              onClick={handleSubmitUTR}
+              disabled={submitting || !utrNumber.trim()}
+            >
+              {submitting ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</>
+              ) : (
+                "Submit for Verification"
+              )}
+            </Button>
+          </Card>
+        )}
+
+        {/* Payment History */}
+        {paymentRequests.length > 0 && (
+          <div className="max-w-lg mx-auto mt-6">
+            <h3 className="font-semibold text-sm mb-3">Payment History</h3>
+            <div className="space-y-2">
+              {paymentRequests.map((req) => (
+                <Card key={req.id} className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {getStatusIcon(req.status)}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {req.plan_type} — ₹{req.amount}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          UTR: {req.utr_number} • {new Date(req.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    {getStatusBadge(req.status)}
+                  </div>
+                  {req.admin_notes && (
+                    <p className="text-xs text-muted-foreground mt-2 bg-muted/50 p-2 rounded">
+                      Admin: {req.admin_notes}
+                    </p>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </main>
 
       <BottomNav />
