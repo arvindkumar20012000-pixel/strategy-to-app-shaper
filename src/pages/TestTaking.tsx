@@ -65,11 +65,12 @@ const TestTaking = () => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isPaused, questions.length]);
 
-  // Enter fullscreen on mount
+  // Enter fullscreen on mount (desktop only - avoid on mobile to prevent camera notch issues)
   useEffect(() => {
+    const isMobile = window.innerWidth < 768;
     const enterFullscreen = async () => {
       try {
-        if (document.documentElement.requestFullscreen) {
+        if (!isMobile && document.documentElement.requestFullscreen) {
           await document.documentElement.requestFullscreen();
         }
       } catch (error) {
@@ -328,7 +329,7 @@ const TestTaking = () => {
   const answeredMarkedCount = questions.filter(q => answers[q.id] && markedForReview.has(q.id)).length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden select-none" style={{ background: 'hsl(210, 20%, 96%)' }}>
+    <div className="h-[100dvh] flex flex-col overflow-hidden select-none" style={{ background: 'hsl(210, 20%, 96%)', paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Top Header Bar - Exam Title */}
       <TestHeader
         testName={testName}

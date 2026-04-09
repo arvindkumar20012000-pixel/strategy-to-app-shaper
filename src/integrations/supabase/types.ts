@@ -390,6 +390,42 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          id: string
+          plan_type: string
+          status: string
+          updated_at: string
+          user_id: string
+          utr_number: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          plan_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          utr_number: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          plan_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          utr_number?: string
+        }
+        Relationships: []
+      }
       previous_papers: {
         Row: {
           answer: string | null

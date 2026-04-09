@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   Loader2, Shield, FileText, Bell, MessageSquare, Settings,
   Image, BookOpen, ClipboardList, GraduationCap, Users, LayoutDashboard,
+  CreditCard,
 } from "lucide-react";
 import { AdminSettings } from "@/components/admin/AdminSettings";
 import { ArticleManagement } from "@/components/admin/ArticleManagement";
@@ -19,6 +20,7 @@ import { PreviousYearQuestions } from "@/components/admin/PreviousYearQuestions"
 import { BannerManagement } from "@/components/admin/BannerManagement";
 import { ContentRequestsManagement } from "@/components/admin/ContentRequestsManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
+import { PaymentVerification } from "@/components/admin/PaymentVerification";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -27,6 +29,7 @@ import { Menu } from "lucide-react";
 const adminSections = [
   { id: "settings", label: "Settings", icon: Settings },
   { id: "users", label: "Users", icon: Users },
+  { id: "payments", label: "Payments", icon: CreditCard },
   { id: "banners", label: "Banners", icon: Image },
   { id: "articles", label: "Articles", icon: FileText },
   { id: "tests", label: "Tests", icon: ClipboardList },
@@ -90,6 +93,7 @@ export default function Admin() {
     switch (activeSection) {
       case "settings": return <AdminSettings />;
       case "users": return <UserManagement />;
+      case "payments": return <PaymentVerification />;
       case "banners": return <BannerManagement />;
       case "articles": return <ArticleManagement />;
       case "tests": return <TestManagement />;
