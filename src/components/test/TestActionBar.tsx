@@ -24,7 +24,7 @@ export const TestActionBar = ({
   onToggleMark,
 }: TestActionBarProps) => {
   return (
-    <div className="shrink-0 border-t" style={{ background: 'hsl(210, 25%, 92%)' }}>
+    <div className="shrink-0 border-t" style={{ background: 'hsl(210, 25%, 92%)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="px-2 sm:px-4 py-2 flex items-center gap-1.5 sm:gap-2 flex-wrap justify-between">
         {/* Left actions */}
         <div className="flex items-center gap-1.5 sm:gap-2">
