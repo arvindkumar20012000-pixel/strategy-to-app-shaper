@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          criteria_type: string
+          description: string
+          display_order: number
+          icon: string
+          id: string
+          key: string
+          threshold: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          criteria_type: string
+          description: string
+          display_order?: number
+          icon?: string
+          id?: string
+          key: string
+          threshold?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          criteria_type?: string
+          description?: string
+          display_order?: number
+          icon?: string
+          id?: string
+          key?: string
+          threshold?: number
+          title?: string
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           created_at: string | null
@@ -711,6 +747,35 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_answers: {
         Row: {
           attempt_id: string
@@ -785,6 +850,39 @@ export type Database = {
           },
         ]
       }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          daily_goal: number
+          id: string
+          last_active_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          daily_goal?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          daily_goal?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number
@@ -824,6 +922,17 @@ export type Database = {
     Functions: {
       clean_old_articles: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
+      get_leaderboard: {
+        Args: { _period?: string }
+        Returns: {
+          avatar_url: string
+          full_name: string
+          rank: number
+          tests_taken: number
+          total_score: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
