@@ -19,11 +19,23 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = () => {
-    if (searchQuery.trim() && onSearch) {
-      onSearch(searchQuery);
-      setSearchOpen(false);
-      setSearchQuery("");
+    const q = searchQuery.trim();
+    if (!q) return;
+    if (onSearch) {
+      onSearch(q);
+    } else {
+      navigate(`/search?q=${encodeURIComponent(q)}`);
     }
+    setSearchOpen(false);
+    setSearchQuery("");
+  };
+
+  const goGlobalSearch = () => {
+    const q = searchQuery.trim();
+    if (!q) return;
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+    setSearchQuery("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -71,17 +83,29 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
           <DialogHeader>
             <DialogTitle>Search Articles</DialogTitle>
           </DialogHeader>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search for articles, news, tests..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1"
-            />
-            <Button onClick={handleSearch}>
-              <Search className="w-4 h-4" />
-            </Button>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Search articles, NCERT, PYP, tests..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="flex-1"
+                autoFocus
+              />
+              <Button onClick={handleSearch}>
+                <Search className="w-4 h-4" />
+              </Button>
+            </div>
+            {onSearch && (
+              <Button
+                variant="link"
+                className="px-0 h-auto text-xs"
+                onClick={goGlobalSearch}
+              >
+                Search across all content →
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

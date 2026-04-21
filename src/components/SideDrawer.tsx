@@ -18,6 +18,10 @@ import {
   Shield,
   Settings,
   LogOut,
+  Gift,
+  Trophy,
+  BarChart3,
+  Award,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -42,6 +46,10 @@ const menuItems = [
   { icon: <Download />, label: "My Downloads", path: "/downloads" },
   { icon: <History />, label: "Attempt History", path: "/history" },
   { icon: <Radio />, label: "Live Tests", path: "/live-tests" },
+  { icon: <Trophy />, label: "Leaderboard", path: "/leaderboard" },
+  { icon: <BarChart3 />, label: "Analytics", path: "/analytics" },
+  { icon: <Award />, label: "Achievements", path: "/achievements" },
+  { icon: <Gift />, label: "Refer & Earn", path: "/refer", highlight: true },
   { icon: <FileQuestion />, label: "Request Special Content", path: "/request-content" },
 ];
 

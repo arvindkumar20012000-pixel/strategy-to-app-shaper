@@ -8,8 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Mail, User, Download, X } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { PasswordInput } from "@/components/PasswordInput";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -28,9 +30,15 @@ const Auth = () => {
   const { signIn, signUp } = useAuth();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get("ref");
   const [loading, setLoading] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (refCode) localStorage.setItem("pending_referral_code", refCode);
+  }, [refCode]);
 
   const [loginData, setLoginData] = useState({
     email: "",
@@ -73,6 +81,31 @@ const Auth = () => {
     try {
       const validated = signupSchema.parse(signupData);
       await signUp(validated.email, validated.password, validated.fullName);
+
+      // Link referral if code present
+      const code = localStorage.getItem("pending_referral_code");
+      if (code) {
+        try {
+          const { data: refRow } = await supabase
+            .from("referrals")
+            .select("referrer_id")
+            .eq("referral_code", code)
+            .is("referred_id", null)
+            .maybeSingle();
+          const { data: { user: newUser } } = await supabase.auth.getUser();
+          if (refRow && newUser && refRow.referrer_id !== newUser.id) {
+            await supabase.from("referrals").insert({
+              referrer_id: refRow.referrer_id,
+              referred_id: newUser.id,
+              referral_code: code,
+              status: "pending",
+            });
+          }
+          localStorage.removeItem("pending_referral_code");
+        } catch (e) {
+          console.error("Referral link failed:", e);
+        }
+      }
     } catch (error: any) {
       if (error.errors) {
         const newErrors: Record<string, string> = {};
