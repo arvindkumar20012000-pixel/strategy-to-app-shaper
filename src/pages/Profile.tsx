@@ -16,8 +16,10 @@ import {
   History,
   Award,
   TrendingUp,
+  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { StreakBadge } from "@/components/StreakBadge";
 
 interface Profile {
   full_name: string | null;
@@ -173,6 +175,56 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Streak + Quick links */}
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          <StreakBadge />
+          <Card
+            className="cursor-pointer hover:bg-accent transition-colors"
+            onClick={() => navigate("/analytics")}
+          >
+            <CardContent className="pt-4 pb-4 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Detailed Analytics</p>
+                <p className="text-xs text-muted-foreground">View charts and insights</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          <Card
+            className="cursor-pointer hover:bg-accent transition-colors"
+            onClick={() => navigate("/achievements")}
+          >
+            <CardContent className="pt-4 pb-4 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
+                <Award className="w-6 h-6 text-secondary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Achievements</p>
+                <p className="text-xs text-muted-foreground">Badges and milestones</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+          <Card
+            className="cursor-pointer hover:bg-accent transition-colors"
+            onClick={() => navigate("/refer")}
+          >
+            <CardContent className="pt-4 pb-4 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-success" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold">Refer & Earn</p>
+                <p className="text-xs text-muted-foreground">Get ₹10 per friend</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

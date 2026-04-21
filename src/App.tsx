@@ -33,6 +33,11 @@ import Admin from "./pages/Admin";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import Notifications from "./pages/Notifications";
+import Referrals from "./pages/Referrals";
+import Leaderboard from "./pages/Leaderboard";
+import Analytics from "./pages/Analytics";
+import Achievements from "./pages/Achievements";
+import SearchResults from "./pages/SearchResults";
 
 const queryClient = new QueryClient();
 
@@ -122,6 +127,11 @@ const App = () => (
                 <Route path="/live-tests" element={<ProtectedRoute><LiveTests /></ProtectedRoute>} />
                 <Route path="/request-content" element={<ProtectedRoute><RequestContent /></ProtectedRoute>} />
                 <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+                <Route path="/refer" element={<ProtectedRoute><Referrals /></ProtectedRoute>} />
+                <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+                <Route path="/search" element={<ProtectedRoute><SearchResults /></ProtectedRoute>} />
                 <Route path="/faqs" element={<FAQs />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/privacy" element={<Privacy />} />
