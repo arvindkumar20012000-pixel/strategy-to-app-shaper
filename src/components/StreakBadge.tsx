@@ -25,10 +25,10 @@ export const StreakBadge = () => {
   }, [user]);
 
   return (
-    <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/30">
+    <Card className="bg-gradient-to-br from-warning/10 to-destructive/10 border-warning/30">
       <CardContent className="pt-4 pb-4 flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-orange-500/20 flex items-center justify-center">
-          <Flame className="w-7 h-7 text-orange-500" />
+        <div className="w-14 h-14 rounded-full bg-warning/20 flex items-center justify-center">
+          <Flame className="w-7 h-7 text-warning" />
         </div>
         <div className="flex-1">
           <p className="text-3xl font-bold">{current}</p>

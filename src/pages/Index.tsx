@@ -18,6 +18,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DailyGoalProgress } from "@/components/DailyGoalProgress";
 
 interface Article {
   id: string;
@@ -314,6 +315,8 @@ const Index = () => {
             </div>
           )}
         </div>
+
+        <DailyGoalProgress />
 
         <Tabs
           value={filter}
