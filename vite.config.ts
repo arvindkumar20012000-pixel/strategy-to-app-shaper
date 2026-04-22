@@ -70,9 +70,25 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+        globPatterns: ["**/*.{css,html,ico,svg,woff,woff2}"],
+        globIgnores: ["**/assets/*.js"],
         runtimeCaching: [
+          {
+            urlPattern: ({ request, url }) =>
+              request.destination === "script" && url.pathname.startsWith("/assets/"),
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "js-assets-cache",
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
