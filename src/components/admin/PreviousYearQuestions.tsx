@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Upload, Plus, Trash2 } from "lucide-react";
+import { Loader2, Upload, Plus, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface ExamCategory {
@@ -49,6 +49,52 @@ export const PreviousYearQuestions = () => {
   const [csvExamType, setCsvExamType] = useState("");
   const [csvPaperName, setCsvPaperName] = useState("");
   const [csvYear, setCsvYear] = useState("");
+
+  // AI generation state
+  const [aiExamType, setAiExamType] = useState("");
+  const [aiPaperName, setAiPaperName] = useState("");
+  const [aiYear, setAiYear] = useState("");
+  const [aiSubject, setAiSubject] = useState("");
+  const [aiDifficulty, setAiDifficulty] = useState("Medium");
+  const [aiCount, setAiCount] = useState("20");
+  const [aiLanguage, setAiLanguage] = useState("english");
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleAiGenerate = async () => {
+    if (!aiExamType || !aiPaperName || !aiYear || !aiSubject) {
+      toast.error("Please fill exam type, paper name, year and subject");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-test", {
+        body: {
+          mode: "paper",
+          subject: aiSubject,
+          difficulty: aiDifficulty,
+          questionsCount: parseInt(aiCount),
+          language: aiLanguage,
+          paperName: aiPaperName,
+          year: parseInt(aiYear),
+          examType: aiExamType,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+      toast.success(`Generated ${data?.questionsCount || ""} questions for ${aiPaperName}`);
+      setAiPaperName("");
+      setAiYear("");
+      setAiSubject("");
+      fetchPapers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate paper");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
