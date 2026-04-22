@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
-import studyByteLogo from "@/assets/studybyte-mark.png";
+import { StudyByteLogo } from "@/components/StudyByteLogo";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -58,7 +58,7 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
               <Menu className="w-5 h-5" />
             </Button>
             <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => navigate('/')}>
-              <img src={studyByteLogo} alt="StudyByte logo" className="w-8 h-8 object-contain" loading="eager" width={32} height={32} />
+              <StudyByteLogo size={32} className="shrink-0" />
               <h1 className="text-xl font-extrabold tracking-tight">
                 <span className="text-foreground">Study</span>
                 <span className="text-secondary">Byte</span>
