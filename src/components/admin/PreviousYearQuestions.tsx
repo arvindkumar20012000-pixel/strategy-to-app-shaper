@@ -355,6 +355,101 @@ export const PreviousYearQuestions = () => {
 
   return (
     <div className="space-y-6">
+      {/* AI Generation */}
+      <Card className="border-primary/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            Generate PYP Questions with AI
+          </CardTitle>
+          <CardDescription>Create a previous-year-style paper instantly using AI</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Exam Type</Label>
+              <Select value={aiExamType} onValueChange={setAiExamType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select exam type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Paper Name</Label>
+              <Input
+                value={aiPaperName}
+                onChange={(e) => setAiPaperName(e.target.value)}
+                placeholder="e.g., SSC CGL Tier 1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Year</Label>
+              <Input
+                type="number"
+                value={aiYear}
+                onChange={(e) => setAiYear(e.target.value)}
+                placeholder="2023"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label>Subject</Label>
+              <Input
+                value={aiSubject}
+                onChange={(e) => setAiSubject(e.target.value)}
+                placeholder="e.g., General Awareness"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Difficulty</Label>
+              <Select value={aiDifficulty} onValueChange={setAiDifficulty}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Easy">Easy</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Questions</Label>
+              <Select value={aiCount} onValueChange={setAiCount}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Language</Label>
+              <Select value={aiLanguage} onValueChange={setAiLanguage}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="english">English</SelectItem>
+                  <SelectItem value="hindi">Hindi (हिंदी)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Button onClick={handleAiGenerate} disabled={aiLoading} className="w-full">
+            {aiLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Generate Paper with AI
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Manual Entry */}
       <Card>
         <CardHeader>
