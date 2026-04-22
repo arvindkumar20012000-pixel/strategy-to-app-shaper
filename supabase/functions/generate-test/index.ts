@@ -12,20 +12,67 @@ serve(async (req) => {
   }
 
   try {
-    // Get Lovable API key from environment (automatically provided by Lovable Cloud)
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
-    const { subject, difficulty = "Medium", questionsCount = 20, language = "english" } = await req.json();
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+    // Verify admin from JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const adminCheck = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: roleRow } = await adminCheck
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!roleRow) {
+      return new Response(
+        JSON.stringify({ error: "Admin privileges required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const {
+      subject,
+      difficulty = "Medium",
+      questionsCount = 20,
+      language = "english",
+      mode = "test", // "test" or "paper"
+      paperName,
+      year,
+      examType,
+    } = await req.json();
 
     if (!subject) {
       throw new Error("Subject is required");
     }
+    if (mode === "paper" && (!paperName || !year || !examType)) {
+      throw new Error("paperName, year and examType are required for PYP generation");
+    }
 
-    console.log(`Generating ${questionsCount} ${difficulty} questions for ${subject}`);
+    console.log(`[${mode}] Generating ${questionsCount} ${difficulty} ${subject} questions`);
 
-    // Use Lovable AI to generate test questions
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -50,14 +97,14 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: `${language === "hindi" ? "सभी प्रश्न, विकल्प और स्पष्टीकरण केवल हिंदी भाषा में उत्पन्न करें। (Generate all questions, options, and explanations in HINDI language only.)" : "Generate all content in English language."}
-            
-Generate ${questionsCount} multiple-choice questions for ${subject} at ${difficulty} difficulty level.
+            content: `${language === "hindi" ? "सभी प्रश्न, विकल्प और स्पष्टीकरण केवल हिंदी भाषा में उत्पन्न करें।" : "Generate all content in English language."}
+
+Generate ${questionsCount} multiple-choice questions for ${subject} at ${difficulty} difficulty level${mode === "paper" ? `, in the style of the ${examType} ${paperName} ${year} previous year question paper` : ""}.
 
 Difficulty Guidelines:
-${difficulty === "Easy" ? "- Questions should be basic and straightforward\n- Suitable for beginners\n- Focus on fundamental concepts" : difficulty === "Hard" ? "- Questions should be advanced and challenging\n- Require in-depth knowledge\n- Include analytical and application-based questions" : "- Questions should be moderate difficulty\n- Mix of direct and application-based questions\n- Suitable for intermediate learners"}
+${difficulty === "Easy" ? "- Basic and straightforward, fundamental concepts" : difficulty === "Hard" ? "- Advanced, in-depth, analytical and application-based" : "- Moderate, mix of direct and application-based"}
 
-Focus on topics relevant to Indian competitive exams like UPSC, SSC, Banking, Railway, State PSC, Defence, etc.
+Focus on topics relevant to Indian competitive exams (UPSC, SSC, Banking, Railway, State PSC, Defence, etc.).
 
 Return ONLY the JSON array, no other text.`,
           },
@@ -69,41 +116,22 @@ Return ONLY the JSON array, no other text.`,
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Lovable AI error:", response.status, errorText);
-      
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Payment required. Please add credits to continue." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      
       throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
     const generatedText = data.choices?.[0]?.message?.content;
+    if (!generatedText) throw new Error("No content generated");
 
-    if (!generatedText) {
-      throw new Error("No content generated");
-    }
-
-    console.log("Raw AI response:", generatedText);
-
-    // Parse the JSON response
     let questions;
     try {
-      // Remove markdown code blocks if present
-      const cleanedText = generatedText
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
-        .trim();
+      const cleanedText = generatedText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       questions = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);
@@ -114,17 +142,49 @@ Return ONLY the JSON array, no other text.`,
       throw new Error("Invalid questions format");
     }
 
-    console.log(`Successfully generated ${questions.length} questions`);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Initialize Supabase client for database operations
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    if (mode === "paper") {
+      const { data: paperData, error: paperError } = await supabase
+        .from("previous_papers")
+        .insert({
+          exam_type: examType,
+          paper_name: paperName,
+          year: parseInt(String(year)),
+          questions_count: questions.length,
+          duration_minutes: questions.length * 2,
+          difficulty,
+        })
+        .select()
+        .single();
 
-    // Create the mock test with language-appropriate title
-    const testTitle = language === "hindi" 
+      if (paperError) throw new Error("Failed to create paper");
+
+      const questionsToInsert = questions.map((q: any) => ({
+        paper_id: paperData.id,
+        question_text: q.question_text,
+        option_a: q.option_a,
+        option_b: q.option_b,
+        option_c: q.option_c,
+        option_d: q.option_d,
+        correct_answer: String(q.correct_answer).toUpperCase(),
+        explanation: q.explanation,
+      }));
+
+      const { error: qErr } = await supabase.from("questions").insert(questionsToInsert);
+      if (qErr) throw new Error("Failed to save questions");
+
+      return new Response(
+        JSON.stringify({ success: true, paperId: paperData.id, questionsCount: questions.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // mode === "test"
+    const testTitle = language === "hindi"
       ? `${subject} - ${difficulty} परीक्षा (AI जनित)`
       : `AI Generated ${subject} Test - ${difficulty}`;
+
     const { data: testData, error: testError } = await supabase
       .from("mock_tests")
       .insert({
@@ -132,19 +192,13 @@ Return ONLY the JSON array, no other text.`,
         subject: subject,
         difficulty: difficulty,
         questions_count: questions.length,
-        duration_minutes: questions.length * 2, // 2 minutes per question
+        duration_minutes: questions.length * 2,
       })
       .select()
       .single();
 
-    if (testError) {
-      console.error("Error creating test:", testError);
-      throw new Error("Failed to create test");
-    }
+    if (testError) throw new Error("Failed to create test");
 
-    console.log("Created test:", testData.id);
-
-    // Insert questions
     const questionsToInsert = questions.map((q: any) => ({
       test_id: testData.id,
       question_text: q.question_text,
@@ -152,40 +206,22 @@ Return ONLY the JSON array, no other text.`,
       option_b: q.option_b,
       option_c: q.option_c,
       option_d: q.option_d,
-      correct_answer: q.correct_answer.toUpperCase(), // Convert to uppercase
+      correct_answer: String(q.correct_answer).toUpperCase(),
       explanation: q.explanation,
     }));
 
-    const { error: questionsError } = await supabase
-      .from("questions")
-      .insert(questionsToInsert);
-
-    if (questionsError) {
-      console.error("Error inserting questions:", questionsError);
-      throw new Error("Failed to save questions");
-    }
-
-    console.log(`Successfully saved ${questions.length} questions`);
+    const { error: questionsError } = await supabase.from("questions").insert(questionsToInsert);
+    if (questionsError) throw new Error("Failed to save questions");
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        testId: testData.id,
-        testTitle: testTitle,
-        questionsCount: questions.length,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, testId: testData.id, testTitle, questionsCount: questions.length }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Error in generate-test function:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Failed to generate test" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
