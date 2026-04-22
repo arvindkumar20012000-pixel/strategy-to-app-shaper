@@ -31,19 +31,10 @@ interface PausedTest {
 const MockTest = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [selectedDifficulty, setSelectedDifficulty] = useState("Medium");
-  const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [tests, setTests] = useState<MockTest[]>([]);
   const [pausedTests, setPausedTests] = useState<PausedTest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const navigate = useNavigate();
-
-  const difficulties = ["Easy", "Medium", "Hard"];
-  const languages = [
-    { value: "english", label: "English" },
-    { value: "hindi", label: "हिंदी" },
-  ];
 
   const subjects = [
     "History",
@@ -69,8 +60,7 @@ const MockTest = () => {
 
   const loadPausedTests = async () => {
     const paused: PausedTest[] = [];
-    
-    // Check localStorage for paused tests
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key?.startsWith("paused_test_")) {
@@ -89,7 +79,6 @@ const MockTest = () => {
       }
     }
 
-    // Fetch test names for paused tests
     for (const test of paused) {
       try {
         const table = test.type === "paper" ? "previous_papers" : "mock_tests";
@@ -98,7 +87,7 @@ const MockTest = () => {
           .select("title, paper_name")
           .eq("id", test.testId)
           .single();
-        
+
         if (data) {
           test.testName = test.type === "paper" ? (data as any).paper_name : (data as any).title;
         }
@@ -126,48 +115,6 @@ const MockTest = () => {
       console.error(error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleGenerateTest = async () => {
-    if (!selectedSubject) {
-      toast.error("Please select a subject first");
-      return;
-    }
-
-    setGenerating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-test", {
-        body: {
-          subject: selectedSubject,
-          difficulty: selectedDifficulty,
-          questionsCount: 20,
-          language: selectedLanguage,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.error) {
-        if (data.error.includes("Rate limit")) {
-          toast.error("Rate limit exceeded. Please try again later.");
-        } else if (data.error.includes("Payment required")) {
-          toast.error("Credits exhausted. Please add credits to continue.");
-        } else {
-          toast.error(data.error);
-        }
-        return;
-      }
-
-      if (data?.success) {
-        toast.success(`Generated ${data.questionsCount} questions!`);
-        fetchTests();
-      }
-    } catch (error: any) {
-      console.error("Error generating test:", error);
-      toast.error("Failed to generate test. Please try again.");
-    } finally {
-      setGenerating(false);
     }
   };
 
@@ -210,10 +157,10 @@ const MockTest = () => {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <Brain className="w-12 h-12 text-primary" />
-            <h1 className="text-2xl font-bold">AI Mock Tests</h1>
+            <h1 className="text-2xl font-bold">Mock Tests</h1>
           </div>
           <p className="text-muted-foreground">
-            AI-generated tests tailored to your preparation needs
+            Curated mock tests prepared by our team to boost your preparation
           </p>
         </div>
 
@@ -256,7 +203,7 @@ const MockTest = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="mb-6 max-w-sm">
           <Select value={selectedSubject} onValueChange={setSelectedSubject}>
             <SelectTrigger>
               <SelectValue placeholder="Select Subject" />
@@ -265,32 +212,6 @@ const MockTest = () => {
               {subjects.map((subject) => (
                 <SelectItem key={subject} value={subject}>
                   {subject}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
-            <SelectTrigger>
-              <SelectValue placeholder="Difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              {difficulties.map((diff) => (
-                <SelectItem key={diff} value={diff}>
-                  {diff}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-            <SelectTrigger>
-              <SelectValue placeholder="Language" />
-            </SelectTrigger>
-            <SelectContent>
-              {languages.map((lang) => (
-                <SelectItem key={lang.value} value={lang.value}>
-                  {lang.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -305,18 +226,7 @@ const MockTest = () => {
         ) : selectedSubject ? (
           tests.length > 0 ? (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                <h2 className="text-xl font-semibold">Available Tests</h2>
-                <Button 
-                  variant="secondary"
-                  onClick={handleGenerateTest}
-                  disabled={generating}
-                >
-                  <Brain className="w-4 h-4 mr-2" />
-                  {generating ? "Generating..." : "Generate AI Test"}
-                </Button>
-              </div>
-
+              <h2 className="text-xl font-semibold">Available Tests</h2>
               {tests.map((test) => (
                 <Card key={test.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
@@ -338,7 +248,7 @@ const MockTest = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button 
+                    <Button
                       className="w-full"
                       onClick={() => navigate(`/test/${test.id}?type=test`)}
                     >
@@ -352,17 +262,10 @@ const MockTest = () => {
             <Card className="text-center py-12">
               <CardContent>
                 <Brain className="w-24 h-24 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">No Tests Available</h3>
-                <p className="text-muted-foreground mb-4">
-                  Generate your first AI test for {selectedSubject}
+                <h3 className="text-lg font-semibold mb-2">No Tests Available Yet</h3>
+                <p className="text-muted-foreground">
+                  Tests for {selectedSubject} are being added. Please check back soon.
                 </p>
-                <Button 
-                  onClick={handleGenerateTest}
-                  disabled={generating}
-                >
-                  <Brain className="w-4 h-4 mr-2" />
-                  {generating ? "Generating..." : "Generate AI Test"}
-                </Button>
               </CardContent>
             </Card>
           )
@@ -372,7 +275,7 @@ const MockTest = () => {
               <Brain className="w-24 h-24 mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-lg font-semibold mb-2">Select a Subject</h3>
               <p className="text-muted-foreground">
-                Choose a subject to view available AI-generated mock tests
+                Choose a subject to view available mock tests
               </p>
             </CardContent>
           </Card>
