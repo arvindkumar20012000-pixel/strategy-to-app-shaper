@@ -30,7 +30,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { supabase } from "@/integrations/supabase/client";
-import studyByteLogo from "@/assets/studybyte-mark.png";
+import { StudyByteLogo } from "@/components/StudyByteLogo";
 
 interface SideDrawerProps {
   isOpen: boolean;
@@ -119,7 +119,7 @@ export const SideDrawer = ({ isOpen, onClose }: SideDrawerProps) => {
           <SheetHeader>
             <SheetTitle>
               <div className="flex items-center gap-3">
-                <img src={studyByteLogo} alt="StudyByte" className="w-12 h-12 shrink-0" />
+                <StudyByteLogo size={48} className="shrink-0" />
                 <div className="min-w-0">
                   <div className="text-lg font-bold truncate">StudyByte</div>
                   <div className="text-sm text-muted-foreground truncate max-w-[200px]">
