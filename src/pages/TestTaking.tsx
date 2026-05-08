@@ -336,6 +336,7 @@ const TestTaking = () => {
         timeLeft={timeLeft}
         formatTime={formatTime}
         onPause={() => setPauseDialogOpen(true)}
+        onOpenPalette={() => setPaletteOpen(true)}
         totalTime={totalTime}
       />
 

@@ -1,14 +1,15 @@
-import { Clock, Pause } from "lucide-react";
+import { Clock, Pause, LayoutGrid } from "lucide-react";
 
 interface TestHeaderProps {
   testName: string;
   timeLeft: number;
   formatTime: (seconds: number) => string;
   onPause: () => void;
+  onOpenPalette?: () => void;
   totalTime: number;
 }
 
-export const TestHeader = ({ testName, timeLeft, formatTime, onPause, totalTime }: TestHeaderProps) => {
+export const TestHeader = ({ testName, timeLeft, formatTime, onPause, onOpenPalette, totalTime }: TestHeaderProps) => {
   const timePercentage = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
   const isLowTime = timeLeft < 300; // less than 5 minutes
   const isCriticalTime = timeLeft < 60; // less than 1 minute
@@ -18,9 +19,17 @@ export const TestHeader = ({ testName, timeLeft, formatTime, onPause, totalTime 
       {/* Primary Header */}
       <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: 'hsl(235, 69%, 25%)', color: 'white' }}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-8 h-8 rounded flex items-center justify-center shrink-0 text-xs font-bold" style={{ background: 'hsl(235, 69%, 40%)' }}>
-            CBT
-          </div>
+          <button
+            type="button"
+            onClick={onOpenPalette}
+            className="w-9 h-9 rounded flex items-center justify-center shrink-0 text-[10px] font-bold gap-0.5 flex-col hover:brightness-110 active:scale-95 transition-all"
+            style={{ background: 'hsl(235, 69%, 40%)' }}
+            title="Open Question Palette"
+            aria-label="Open Question Palette"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span className="text-[8px] leading-none">CBT</span>
+          </button>
           <div className="min-w-0">
             <h1 className="text-sm sm:text-base font-bold truncate">{testName}</h1>
             <p className="text-[10px] opacity-70">Computer Based Test</p>
