@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { SideDrawer } from "@/components/SideDrawer";
@@ -127,10 +127,19 @@ const Index = () => {
         bookmarksData?.map((b) => b.article_id) || []
       );
 
-      const articlesWithBookmarks = articlesData?.map((article) => ({
-        ...article,
-        isBookmarked: bookmarkedIds.has(article.id),
-      })) || [];
+      // Deduplicate by title+language to avoid the same article showing many times
+      const seen = new Set<string>();
+      const articlesWithBookmarks = (articlesData || [])
+        .filter((a) => {
+          const key = `${(a.title || "").trim().toLowerCase()}|${a.language || ""}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+        .map((article) => ({
+          ...article,
+          isBookmarked: bookmarkedIds.has(article.id),
+        }));
 
       setAllArticles(articlesWithBookmarks);
     } catch (error: any) {
@@ -385,9 +394,8 @@ const Index = () => {
             ) : (
               <div className="grid gap-3 md:grid-cols-2">
                 {articles.map((article, idx) => (
-                  <>
+                  <Fragment key={article.id}>
                     <ArticleCard
-                      key={article.id}
                       id={article.id}
                       title={article.title}
                       published_date={article.published_date}
@@ -402,7 +410,7 @@ const Index = () => {
                         <InlineAd slot={`feed-${idx}`} />
                       </div>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </div>
             )}
