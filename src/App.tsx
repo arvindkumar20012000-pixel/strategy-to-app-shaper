@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { AdSenseLoader } from "@/components/AdSenseLoader";
 import Index from "./pages/Index";
 import NCERT from "./pages/NCERT";
 import PreviousPapers from "./pages/PreviousPapers";
@@ -141,6 +142,7 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <InstallPrompt />
+              <AdSenseLoader />
             </div>
           </AuthProvider>
         </BrowserRouter>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { X } from "lucide-react";
+import { useAdSense } from "@/hooks/useAdSense";
 
 interface AdBannerProps {
   slot: string;
@@ -9,29 +9,30 @@ interface AdBannerProps {
   className?: string;
 }
 
-export const AdBanner = ({ slot, format = "auto", className = "" }: AdBannerProps) => {
+const usePremium = () => {
   const { user } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "premium")
+      .maybeSingle()
+      .then(({ data }) => setIsPremium(!!data));
+  }, [user]);
+  return isPremium;
+};
+
+export const AdBanner = ({ slot, format = "auto", className = "" }: AdBannerProps) => {
+  const isPremium = usePremium();
+  const { publisherId } = useAdSense();
   const [adLoaded, setAdLoaded] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    const checkPremium = async () => {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "premium")
-        .maybeSingle();
-      setIsPremium(!!data);
-    };
-    checkPremium();
-  }, [user]);
-
-  useEffect(() => {
-    if (isPremium) return;
+    if (isPremium || !publisherId) return;
     try {
-      // Push ad after component mounts
       const adsbygoogle = (window as any).adsbygoogle;
       if (adsbygoogle) {
         adsbygoogle.push({});
@@ -40,19 +41,18 @@ export const AdBanner = ({ slot, format = "auto", className = "" }: AdBannerProp
     } catch (e) {
       console.log("Ad not loaded:", e);
     }
-  }, [isPremium]);
+  }, [isPremium, publisherId]);
 
-  // Don't show ads to premium users
   if (isPremium) return null;
+  if (!publisherId) return null;
 
   return (
     <div className={`relative w-full overflow-hidden ${className}`}>
-      {/* Fallback placeholder when AdSense isn't configured yet */}
       <div className="bg-muted/50 border border-border rounded-lg p-3 text-center">
         <ins
           className="adsbygoogle"
           style={{ display: "block" }}
-          data-ad-client="ca-pub-6797322781710540"
+          data-ad-client={publisherId}
           data-ad-slot={slot}
           data-ad-format={format}
           data-full-width-responsive="true"
@@ -73,34 +73,19 @@ export const AdBanner = ({ slot, format = "auto", className = "" }: AdBannerProp
   );
 };
 
-// Smaller inline ad for between list items
 export const InlineAd = ({ slot, className = "" }: { slot: string; className?: string }) => {
-  const { user } = useAuth();
-  const [isPremium, setIsPremium] = useState(false);
+  const isPremium = usePremium();
+  const { publisherId } = useAdSense();
 
   useEffect(() => {
-    if (!user) return;
-    const checkPremium = async () => {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "premium")
-        .maybeSingle();
-      setIsPremium(!!data);
-    };
-    checkPremium();
-  }, [user]);
-
-  useEffect(() => {
-    if (isPremium) return;
+    if (isPremium || !publisherId) return;
     try {
       const adsbygoogle = (window as any).adsbygoogle;
       if (adsbygoogle) adsbygoogle.push({});
     } catch (e) {}
-  }, [isPremium]);
+  }, [isPremium, publisherId]);
 
-  if (isPremium) return null;
+  if (isPremium || !publisherId) return null;
 
   return (
     <div className={`w-full my-3 ${className}`}>
@@ -108,7 +93,7 @@ export const InlineAd = ({ slot, className = "" }: { slot: string; className?: s
         <ins
           className="adsbygoogle"
           style={{ display: "block", textAlign: "center" }}
-          data-ad-client="ca-pub-6797322781710540"
+          data-ad-client={publisherId}
           data-ad-slot={slot}
           data-ad-layout="in-article"
           data-ad-format="fluid"
