@@ -47,26 +47,20 @@ serve(async (req) => {
     const fromDate = twoDaysAgo.toISOString().split('T')[0];
     const toDate = today.toISOString().split('T')[0];
 
-    // Exam-focused search queries for competitive exams (SSC, UPSC, Railway, Banking, etc.)
-    const examKeywordsEn = [
+    // Always fetch news in English (NewsAPI has very limited Hindi coverage on free tier).
+    // Gemini will then summarize/translate into Hindi when language === "hindi".
+    const examKeywords = [
       "SSC OR UPSC OR Railway OR Banking exam OR government job OR sarkari naukri",
       "India education policy OR NCERT OR examination result OR admit card",
       "current affairs India OR economy OR constitution OR parliament OR supreme court",
     ];
-    const examKeywordsHi = [
-      "सरकारी नौकरी OR SSC OR UPSC OR रेलवे भर्ती OR बैंकिंग परीक्षा",
-      "शिक्षा नीति OR परीक्षा परिणाम OR एडमिट कार्ड OR भारत समाचार",
-      "करंट अफेयर्स OR अर्थव्यवस्था OR संसद OR सुप्रीम कोर्ट",
-    ];
 
-    const keywords = language === "hindi" ? examKeywordsHi : examKeywordsEn;
     let newsArticles: any[] = [];
 
-    for (const query of keywords) {
+    for (const query of examKeywords) {
       if (newsArticles.length >= 10) break;
       try {
-        const lang = language === "hindi" ? "hi" : "en";
-        const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=${lang}&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=5&apiKey=${NEWS_API_KEY}`;
+        const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=en&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=5&apiKey=${NEWS_API_KEY}`;
         console.log(`Fetching: ${query.substring(0, 40)}...`);
         const res = await fetch(apiUrl);
         if (!res.ok) continue;
@@ -128,7 +122,7 @@ serve(async (req) => {
       .join("\n\n");
 
     const langInstruction = language === "hindi"
-      ? "सभी लेख हिंदी में लिखें।"
+      ? "अनुवाद करें और सभी आउटपुट (title, description, content सहित) पूरी तरह हिंदी (देवनागरी लिपि) में लिखें। अंग्रेज़ी शब्द न रखें (छोड़ कर: संस्था के नाम जैसे SSC, UPSC, NCERT)।"
       : "Generate all content in English.";
 
     const prompt = `${langInstruction}
