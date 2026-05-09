@@ -16,7 +16,12 @@ import {
   XCircle,
   Target,
   Home,
+  TrendingUp,
+  Lightbulb,
+  AlertTriangle,
+  Zap,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { AdBanner } from "@/components/AdBanner";
 
 interface TestAttempt {
@@ -201,6 +206,104 @@ const TestResult = () => {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Performance Analysis */}
+        {(() => {
+          const total = attempt.total_questions || 1;
+          const correct = attempt.correct_answers || 0;
+          const incorrect = attempt.incorrect_answers || 0;
+          const skipped = Math.max(0, total - correct - incorrect);
+          const accuracy = correct + incorrect > 0 ? Math.round((correct / (correct + incorrect)) * 100) : 0;
+          const avgTimePerQ = attempt.time_taken_minutes
+            ? ((attempt.time_taken_minutes * 60) / total).toFixed(1)
+            : "—";
+          const level =
+            attempt.score >= 80
+              ? { label: "Excellent", color: "text-success", icon: Trophy }
+              : attempt.score >= 60
+              ? { label: "Good", color: "text-secondary", icon: TrendingUp }
+              : attempt.score >= 40
+              ? { label: "Average", color: "text-warning", icon: AlertTriangle }
+              : { label: "Needs Work", color: "text-destructive", icon: AlertTriangle };
+          const tips: string[] = [];
+          if (skipped / total > 0.15) tips.push("You skipped too many questions — work on time management and attempt all questions.");
+          if (accuracy < 60) tips.push("Accuracy is low. Focus on understanding concepts rather than rushing through questions.");
+          if (incorrect > correct) tips.push("Revise wrong answers carefully — read explanations below for each missed question.");
+          if (attempt.time_taken_minutes && attempt.time_taken_minutes < 5 && total > 10) tips.push("You finished very fast — slow down to read questions carefully.");
+          if (tips.length === 0) tips.push("Great consistency! Keep practicing harder mock tests to push your score further.");
+
+          const LevelIcon = level.icon;
+          return (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-primary" />
+                  Performance Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-accent">
+                  <LevelIcon className={`w-8 h-8 ${level.color}`} />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Overall Performance</p>
+                    <p className={`text-xl font-bold ${level.color}`}>{level.label}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Accuracy</span>
+                      <span className="font-semibold">{accuracy}%</span>
+                    </div>
+                    <Progress value={accuracy} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Attempted</span>
+                      <span className="font-semibold">{correct + incorrect}/{total}</span>
+                    </div>
+                    <Progress value={((correct + incorrect) / total) * 100} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-muted-foreground">Skipped</span>
+                      <span className="font-semibold">{skipped}</span>
+                    </div>
+                    <Progress value={(skipped / total) * 100} />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="p-3 rounded-lg bg-success/10">
+                    <p className="text-2xl font-bold text-success">{correct}</p>
+                    <p className="text-xs text-muted-foreground">Correct</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-destructive/10">
+                    <p className="text-2xl font-bold text-destructive">{incorrect}</p>
+                    <p className="text-xs text-muted-foreground">Incorrect</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-muted">
+                    <p className="text-2xl font-bold">{avgTimePerQ}<span className="text-sm">s</span></p>
+                    <p className="text-xs text-muted-foreground">Avg/Q</p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border-l-4 border-primary bg-primary/5">
+                  <p className="text-sm font-bold mb-2 flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-primary" />
+                    Where to focus next
+                  </p>
+                  <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
+                    {tips.map((t, i) => (
+                      <li key={i}>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Ad after results summary */}
         <AdBanner slot="test-result-top" className="mb-6" />
