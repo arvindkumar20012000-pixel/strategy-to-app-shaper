@@ -36,19 +36,16 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    // Clean old articles
+    // Clean old articles (>2 days)
     const { error: cleanError } = await supabase.rpc("clean_old_articles");
     if (cleanError) console.error("Error cleaning old articles:", cleanError);
 
-    // Date range: last 2 days
-    const today = new Date();
-    const twoDaysAgo = new Date(today);
-    twoDaysAgo.setDate(today.getDate() - 2);
-    const fromDate = twoDaysAgo.toISOString().split('T')[0];
-    const toDate = today.toISOString().split('T')[0];
+    // Strict 48-hour window using full ISO datetime
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const fromIso = cutoff.toISOString();
+    const toIso = now.toISOString();
 
-    // Always fetch news in English (NewsAPI has very limited Hindi coverage on free tier).
-    // Gemini will then summarize/translate into Hindi when language === "hindi".
     const examKeywords = [
       "SSC OR UPSC OR Railway OR Banking exam OR government job OR sarkari naukri",
       "India education policy OR NCERT OR examination result OR admit card",
@@ -60,7 +57,7 @@ serve(async (req) => {
     for (const query of examKeywords) {
       if (newsArticles.length >= 10) break;
       try {
-        const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=en&from=${fromDate}&to=${toDate}&sortBy=publishedAt&pageSize=5&apiKey=${NEWS_API_KEY}`;
+        const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=en&from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}&sortBy=publishedAt&pageSize=8&apiKey=${NEWS_API_KEY}`;
         console.log(`Fetching: ${query.substring(0, 40)}...`);
         const res = await fetch(apiUrl);
         if (!res.ok) continue;
@@ -69,7 +66,8 @@ serve(async (req) => {
         const filtered = (data.articles || []).filter((a: any) => {
           if (!a.publishedAt || !a.title || a.title === "[Removed]") return false;
           const d = new Date(a.publishedAt);
-          return d >= twoDaysAgo && d <= today;
+          // Hard-enforce 48-hour rule client-side too
+          return d >= cutoff && d <= now;
         });
         newsArticles.push(...filtered);
       } catch (e) {
@@ -113,6 +111,7 @@ serve(async (req) => {
       author: a.author || "StudyByte",
       url: a.url,
       image_url: a.urlToImage,
+      published_at: a.publishedAt,
     }));
 
     const newsContent = newsArticles
@@ -194,6 +193,9 @@ Return ALL articles.`;
 
     const articles = articlesData.map((article: any, index: number) => {
       const orig = originalArticles[index] || {};
+      const pubDate = orig.published_at
+        ? new Date(orig.published_at).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0];
       return {
         title: article.title || orig.title || `Exam Update ${index + 1}`,
         description: article.description || orig.description || "",
@@ -201,7 +203,7 @@ Return ALL articles.`;
         source: article.source || orig.source || "StudyByte",
         image_url: orig.image_url || null,
         category: "current-affairs",
-        published_date: new Date().toISOString().split("T")[0],
+        published_date: pubDate,
         language,
       };
     });
