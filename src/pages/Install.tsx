@@ -30,7 +30,7 @@ const Install = () => {
     <div className="min-h-screen bg-background pb-20">
       <Header onMenuClick={() => {}} onSearch={() => {}} />
       
-      <main className="max-w-lg mx-auto px-4 py-8">
+      <main className="max-w-lg mx-auto px-4 pt-20 pb-8">
         {/* Hero Section */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-primary to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">

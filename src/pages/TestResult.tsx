@@ -161,7 +161,7 @@ const TestResult = () => {
       <Header onMenuClick={() => setDrawerOpen(true)} showSearch={false} />
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
+      <main className="max-w-4xl mx-auto px-4 pt-20 pb-6">
         {/* Results Summary */}
         <Card className="mb-6 text-center">
           <CardContent className="pt-6">
