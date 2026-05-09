@@ -17,6 +17,10 @@ import {
   Award,
   TrendingUp,
   ChevronRight,
+  Mail,
+  Phone,
+  Settings as SettingsIcon,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { StreakBadge } from "@/components/StreakBadge";
@@ -153,26 +157,56 @@ const Profile = () => {
       <SideDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <main className="max-w-4xl mx-auto px-3 pt-16 pb-4">
-        {/* Profile Header */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-primary flex items-center justify-center text-white text-2xl font-bold">
-                {profile?.full_name?.[0]?.toUpperCase() || "U"}
+        {/* Profile Header - Cover + Avatar */}
+        <Card className="mb-6 overflow-hidden border-0 shadow-lg">
+          <div className="h-28 bg-gradient-to-br from-primary via-primary/80 to-secondary relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/settings')}
+              className="absolute top-2 right-2 text-white hover:bg-white/20"
+            >
+              <SettingsIcon className="w-4 h-4" />
+            </Button>
+          </div>
+          <CardContent className="pt-0 pb-5">
+            <div className="flex items-end gap-4 -mt-12 mb-4">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-3xl font-bold ring-4 ring-background shadow-lg">
+                {profile?.full_name?.[0]?.toUpperCase() || profile?.email?.[0]?.toUpperCase() || "U"}
               </div>
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-1">
-                  {profile?.full_name || "User"}
-                </h1>
-                <p className="text-muted-foreground mb-2">{profile?.email}</p>
-                {subscription && (
-                  <Badge className="bg-secondary">
-                    <Crown className="w-3 h-3 mr-1" />
-                    {subscription.plan_type.toUpperCase()}
-                  </Badge>
-                )}
-              </div>
+              {subscription && (
+                <Badge className="mb-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
+                  <Crown className="w-3 h-3 mr-1" />
+                  {subscription.plan_type.toUpperCase()}
+                </Badge>
+              )}
             </div>
+            <h1 className="text-2xl font-bold leading-tight">
+              {profile?.full_name || "User"}
+            </h1>
+            <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+              {profile?.email && (
+                <div className="flex items-center gap-2 break-all">
+                  <Mail className="w-4 h-4 shrink-0" />
+                  <span>{profile.email}</span>
+                </div>
+              )}
+              {profile?.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 shrink-0" />
+                  <span>{profile.phone}</span>
+                </div>
+              )}
+            </div>
+            {!subscription && (
+              <Button
+                onClick={() => navigate('/premium')}
+                className="mt-4 w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Upgrade to Premium
+              </Button>
+            )}
           </CardContent>
         </Card>
 

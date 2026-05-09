@@ -232,25 +232,42 @@ const NCERT = () => {
 
       {/* PDF Viewer Dialog */}
       <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] p-0 w-[calc(100vw-1rem)]">
-          <DialogHeader className="p-4 pb-0">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="truncate pr-4">{currentChapterName}</DialogTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setPdfViewerOpen(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+        <DialogContent className="max-w-4xl h-[90vh] p-0 w-[calc(100vw-1rem)] flex flex-col">
+          <DialogHeader className="p-4 pb-2 border-b">
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="truncate text-base">{currentChapterName}</DialogTitle>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(currentPdfUrl, "_blank", "noopener,noreferrer")}
+                >
+                  Open in new tab
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setPdfViewerOpen(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </DialogHeader>
-          <div className="flex-1 h-full p-4 pt-2">
-            <iframe
-              src={`${currentPdfUrl}#toolbar=1`}
-              className="w-full h-full rounded-lg border"
-              title="PDF Viewer"
-            />
+          <div className="flex-1 min-h-0 p-2">
+            {currentPdfUrl && (
+              <object
+                data={currentPdfUrl}
+                type="application/pdf"
+                className="w-full h-full rounded-lg border"
+              >
+                <iframe
+                  src={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(currentPdfUrl)}`}
+                  className="w-full h-full rounded-lg border"
+                  title="PDF Viewer"
+                />
+              </object>
+            )}
           </div>
         </DialogContent>
       </Dialog>
