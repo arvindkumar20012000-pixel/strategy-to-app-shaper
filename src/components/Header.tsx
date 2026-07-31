@@ -46,22 +46,22 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+      <header className="fixed top-0 left-0 right-0 lg:left-64 z-50 w-full lg:w-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
         <div className="flex items-center justify-between px-3 py-2 max-w-screen-xl mx-auto">
           <div className="flex items-center gap-3 flex-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={onMenuClick}
-              className="shrink-0"
+              className="shrink-0 lg:hidden"
             >
               <Menu className="w-5 h-5" />
             </Button>
-            <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => navigate('/')}>
+            <div className="flex items-center gap-2 cursor-pointer select-none lg:hidden" onClick={() => navigate('/')}>
               <StudyByteLogo size={32} className="shrink-0" />
-              <h1 className="text-xl font-extrabold tracking-tight">
+              <h1 className="font-display text-2xl leading-none">
                 <span className="text-foreground">Study</span>
-                <span className="text-secondary">Byte</span>
+                <span className="text-primary">Byte</span>
               </h1>
             </div>
           </div>

@@ -120,7 +120,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen lg:grid lg:grid-cols-2 bg-background">
       {/* PWA Install Banner */}
       {showInstallBanner && !isInstalled && isInstallable && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between gap-3 animate-fade-in">
@@ -144,18 +144,48 @@ const Auth = () => {
         </div>
       )}
 
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg">
-              <BookOpen className="w-8 h-8 text-primary" />
-            </div>
+      {/* Editorial brand panel */}
+      <div className="relative hidden lg:flex flex-col justify-between bg-gradient-hero p-12 text-primary-foreground">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-background/15 backdrop-blur flex items-center justify-center">
+            <BookOpen className="w-6 h-6" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome to StudyByte</h1>
-          <p className="text-white/90">Your daily exam preparation companion</p>
+          <span className="font-display text-3xl leading-none">StudyByte</span>
         </div>
 
-        <Card>
+        <div className="max-w-md">
+          <h1 className="font-display text-5xl leading-tight text-primary-foreground">
+            Prepare a little, every single day.
+          </h1>
+          <p className="mt-5 text-base text-primary-foreground/80 leading-relaxed">
+            Daily current affairs, NCERT libraries, previous year papers and full CBT-style mock
+            tests — all in one calm, focused workspace.
+          </p>
+          <ul className="mt-8 space-y-3 text-sm text-primary-foreground/85">
+            <li>• Fresh news digests within 48 hours</li>
+            <li>• Real exam-pattern mock tests with analysis</li>
+            <li>• Streaks, leaderboards and progress analytics</li>
+          </ul>
+        </div>
+
+        <p className="text-xs text-primary-foreground/60">
+          © {new Date().getFullYear()} StudyByte. Built for serious aspirants.
+        </p>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8 lg:hidden">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+              <BookOpen className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="font-display text-4xl text-foreground">StudyByte</h1>
+            <p className="text-muted-foreground mt-1">Your daily exam preparation companion</p>
+          </div>
+
+          <Card className="shadow-lg border-border">
+
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
@@ -319,9 +349,11 @@ const Auth = () => {
               </form>
             </TabsContent>
           </Tabs>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
+
   );
 };
 

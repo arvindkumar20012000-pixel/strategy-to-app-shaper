@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AppChrome } from "@/components/AppChrome";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
@@ -50,7 +51,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <div className="overflow-x-hidden w-full">
+            <AppChrome>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -143,7 +144,7 @@ const App = () => (
               </Routes>
               <InstallPrompt />
               <AdSenseLoader />
-            </div>
+            </AppChrome>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
