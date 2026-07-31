@@ -56,14 +56,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/install" element={<Install />} />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/" element={<Index />} />
                 <Route
                   path="/ncert"
                   element={
