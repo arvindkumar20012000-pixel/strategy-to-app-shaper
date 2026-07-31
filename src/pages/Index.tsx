@@ -57,10 +57,8 @@ const Index = () => {
 
   // Fetch articles only once when user logs in - no auto refresh
   useEffect(() => {
-    if (user) {
-      fetchArticles();
-      fetchBanners();
-    }
+    fetchArticles();
+    fetchBanners();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
