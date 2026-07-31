@@ -350,6 +350,17 @@ const Auth = () => {
             </TabsContent>
           </Tabs>
           </Card>
+
+          <div className="mt-6 text-center">
+            <Button
+              variant="link"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to home
+            </Button>
+          </div>
         </div>
       </div>
     </div>
