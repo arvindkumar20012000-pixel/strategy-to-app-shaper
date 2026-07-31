@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Mail, User, Download, X } from "lucide-react";
+import { BookOpen, Mail, User, Download, X, ArrowLeft } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { PasswordInput } from "@/components/PasswordInput";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -350,6 +350,17 @@ const Auth = () => {
             </TabsContent>
           </Tabs>
           </Card>
+
+          <div className="mt-6 text-center">
+            <Button
+              variant="link"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to home
+            </Button>
+          </div>
         </div>
       </div>
     </div>

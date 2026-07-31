@@ -57,10 +57,8 @@ const Index = () => {
 
   // Fetch articles only once when user logs in - no auto refresh
   useEffect(() => {
-    if (user) {
-      fetchArticles();
-      fetchBanners();
-    }
+    fetchArticles();
+    fetchBanners();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -99,8 +97,6 @@ const Index = () => {
   };
 
   const fetchArticles = async () => {
-    if (!user) return;
-
     setLoading(true);
     try {
       // Fetch articles from last 2 days only
@@ -115,17 +111,20 @@ const Index = () => {
 
       if (articlesError) throw articlesError;
 
-      // Fetch user's bookmarks
-      const { data: bookmarksData, error: bookmarksError } = await supabase
-        .from("bookmarks")
-        .select("article_id")
-        .eq("user_id", user.id);
+      // Fetch user's bookmarks only when logged in
+      let bookmarkedIds = new Set<string>();
+      if (user) {
+        const { data: bookmarksData, error: bookmarksError } = await supabase
+          .from("bookmarks")
+          .select("article_id")
+          .eq("user_id", user.id);
 
-      if (bookmarksError) throw bookmarksError;
-
-      const bookmarkedIds = new Set(
-        bookmarksData?.map((b) => b.article_id) || []
-      );
+        if (!bookmarksError) {
+          bookmarkedIds = new Set(
+            bookmarksData?.map((b) => b.article_id) || []
+          );
+        }
+      }
 
       // Deduplicate by title+language to avoid the same article showing many times
       const seen = new Set<string>();
