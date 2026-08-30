@@ -5,13 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Mail, User, Download, X, ArrowLeft } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { BookOpen, Mail, User, Download, X, ArrowLeft, KeyRound } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { PasswordInput } from "@/components/PasswordInput";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -73,6 +76,31 @@ const Auth = () => {
     }
   };
 
+  const linkReferral = async () => {
+    const code = localStorage.getItem("pending_referral_code");
+    if (!code) return;
+    try {
+      const { data: refRow } = await supabase
+        .from("referrals")
+        .select("referrer_id")
+        .eq("referral_code", code)
+        .is("referred_id", null)
+        .maybeSingle();
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      if (refRow && newUser && refRow.referrer_id !== newUser.id) {
+        await supabase.from("referrals").insert({
+          referrer_id: refRow.referrer_id,
+          referred_id: newUser.id,
+          referral_code: code,
+          status: "pending",
+        });
+      }
+      localStorage.removeItem("pending_referral_code");
+    } catch (e) {
+      console.error("Referral link failed:", e);
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -81,31 +109,7 @@ const Auth = () => {
     try {
       const validated = signupSchema.parse(signupData);
       await signUp(validated.email, validated.password, validated.fullName);
-
-      // Link referral if code present
-      const code = localStorage.getItem("pending_referral_code");
-      if (code) {
-        try {
-          const { data: refRow } = await supabase
-            .from("referrals")
-            .select("referrer_id")
-            .eq("referral_code", code)
-            .is("referred_id", null)
-            .maybeSingle();
-          const { data: { user: newUser } } = await supabase.auth.getUser();
-          if (refRow && newUser && refRow.referrer_id !== newUser.id) {
-            await supabase.from("referrals").insert({
-              referrer_id: refRow.referrer_id,
-              referred_id: newUser.id,
-              referral_code: code,
-              status: "pending",
-            });
-          }
-          localStorage.removeItem("pending_referral_code");
-        } catch (e) {
-          console.error("Referral link failed:", e);
-        }
-      }
+      await linkReferral();
     } catch (error: any) {
       if (error.errors) {
         const newErrors: Record<string, string> = {};
@@ -118,6 +122,69 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // ---------- Email OTP ----------
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpName, setOtpName] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  const sendOtp = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const parsed = z.string().email().safeParse(otpEmail.trim());
+    if (!parsed.success) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: otpEmail.trim(),
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/`,
+          data: otpName.trim() ? { full_name: otpName.trim() } : undefined,
+        },
+      });
+      if (error) throw error;
+      setOtpSent(true);
+      setOtpCode("");
+      setResendIn(45);
+      toast.success("We sent a 6-digit code to your email");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async (code: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: otpEmail.trim(),
+        token: code,
+        type: "email",
+      });
+      if (error) throw error;
+      await linkReferral();
+      toast.success("Signed in successfully");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "Invalid or expired code");
+      setOtpCode("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2 bg-background">
@@ -186,11 +253,114 @@ const Auth = () => {
 
           <Card className="shadow-lg border-border">
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
+          <Tabs defaultValue="otp" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="otp">Email OTP</TabsTrigger>
+              <TabsTrigger value="login">Password</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="otp">
+              <CardHeader>
+                <CardTitle>Sign in with Email OTP</CardTitle>
+                <CardDescription>
+                  {otpSent
+                    ? `Enter the 6-digit code we sent to ${otpEmail}`
+                    : "No password needed — we'll email you a one-time code"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!otpSent ? (
+                  <form onSubmit={sendOtp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="otp-email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="otp-email"
+                          type="email"
+                          placeholder="your@email.com"
+                          className="pl-10"
+                          value={otpEmail}
+                          onChange={(e) => setOtpEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="otp-name">Full Name (new users only)</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="otp-name"
+                          type="text"
+                          placeholder="John Doe"
+                          className="pl-10"
+                          value={otpName}
+                          onChange={(e) => setOtpName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      <KeyRound className="w-4 h-4 mr-2" />
+                      {loading ? "Sending code..." : "Send OTP"}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(v) => {
+                          setOtpCode(v);
+                          if (v.length === 6) verifyOtp(v);
+                        }}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={loading || otpCode.length !== 6}
+                      onClick={() => verifyOtp(otpCode)}
+                    >
+                      {loading ? "Verifying..." : "Verify & Continue"}
+                    </Button>
+                    <div className="flex items-center justify-between">
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="px-0 h-auto text-sm"
+                        disabled={loading || resendIn > 0}
+                        onClick={() => sendOtp()}
+                      >
+                        {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="px-0 h-auto text-sm text-muted-foreground"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtpCode("");
+                        }}
+                      >
+                        Change email
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </TabsContent>
+
 
             <TabsContent value="login">
               <form onSubmit={handleLogin}>

@@ -314,10 +314,11 @@ const TestResult = () => {
           {answers.map((answer, index) => (
             <Card key={answer.id}>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-base flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <CardTitle className="text-base flex-1 break-words leading-relaxed">
                     Q{index + 1}. {answer.questions.question_text}
                   </CardTitle>
+
                   {answer.is_correct ? (
                     <Badge className="bg-success text-success-foreground">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -347,29 +348,34 @@ const TestResult = () => {
                             : "border-border"
                         }`}
                       >
-                        <div className="flex items-center gap-2">
-                          {isCorrect && <CheckCircle2 className="w-4 h-4 text-success" />}
+                        <div className="flex items-start gap-2">
+                          {isCorrect && <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />}
                           {isSelected && !isCorrect && (
-                            <XCircle className="w-4 h-4 text-destructive" />
+                            <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
                           )}
-                          <span className="font-medium">{getOptionLabel(option)}.</span>
-                          <span>
+                          <span className="font-medium shrink-0">{getOptionLabel(option)}.</span>
+                          <span className="break-words text-foreground">
                             {answer.questions[`option_${option}` as keyof typeof answer.questions]}
                           </span>
                         </div>
+
                       </div>
                     );
                   })}
                 </div>
 
                 {answer.questions.explanation && (
-                  <div className="p-4 rounded-lg border-l-4" style={{ background: 'hsl(210, 50%, 96%)', borderColor: 'hsl(210, 80%, 50%)' }}>
-                    <p className="text-sm font-bold mb-2" style={{ color: 'hsl(210, 80%, 35%)' }}>💡 Explanation:</p>
-                    <p className="text-sm leading-relaxed" style={{ color: 'hsl(222, 47%, 30%)' }}>
+                  <div className="p-4 rounded-lg border-l-4 border-primary bg-primary/5">
+                    <p className="text-sm font-bold mb-2 flex items-center gap-2 text-primary">
+                      <Lightbulb className="w-4 h-4" />
+                      Explanation
+                    </p>
+                    <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line break-words">
                       {answer.questions.explanation}
                     </p>
                   </div>
                 )}
+
               </CardContent>
             </Card>
           ))}
