@@ -84,7 +84,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert test creator. Generate high-quality multiple-choice questions for competitive exams. Return ONLY a valid JSON array of questions. Each question must have exactly this structure:
+            content: `You are an expert test creator for Indian competitive exams. Generate high-quality multiple-choice questions. Return ONLY a valid JSON array of questions. Each question must have exactly this structure:
 {
   "question_text": "The question text",
   "option_a": "First option",
@@ -92,8 +92,15 @@ serve(async (req) => {
   "option_c": "Third option",
   "option_d": "Fourth option",
   "correct_answer": "A" (must be uppercase: "A", "B", "C", or "D"),
-  "explanation": "Brief explanation of the correct answer"
-}`,
+  "explanation": "A detailed 2-4 sentence explanation"
+}
+
+EXPLANATION RULES (mandatory):
+- Every question MUST include a non-empty "explanation" of 2-4 sentences.
+- State WHY the correct option is right, and briefly why the most tempting wrong options are incorrect.
+- Include the key fact, formula, date, or concept a student should remember.
+- Write the explanation in the same language as the question.`,
+
           },
           {
             role: "user",
