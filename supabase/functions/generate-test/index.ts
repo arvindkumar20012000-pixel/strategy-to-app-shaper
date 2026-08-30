@@ -149,6 +149,22 @@ Return ONLY the JSON array, no other text.`,
       throw new Error("Invalid questions format");
     }
 
+    // Keep only well-formed questions that include an explanation
+    questions = questions.filter(
+      (q: any) =>
+        q?.question_text &&
+        q.option_a && q.option_b && q.option_c && q.option_d &&
+        ["A", "B", "C", "D"].includes(String(q.correct_answer || "").trim().toUpperCase()) &&
+        typeof q.explanation === "string" &&
+        q.explanation.trim().length >= 20
+    );
+
+    if (questions.length === 0) {
+      throw new Error("AI did not return questions with valid explanations. Please try again.");
+    }
+    console.log(`Kept ${questions.length} questions with explanations`);
+
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     if (mode === "paper") {
