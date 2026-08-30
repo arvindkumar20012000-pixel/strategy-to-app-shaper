@@ -76,6 +76,31 @@ const Auth = () => {
     }
   };
 
+  const linkReferral = async () => {
+    const code = localStorage.getItem("pending_referral_code");
+    if (!code) return;
+    try {
+      const { data: refRow } = await supabase
+        .from("referrals")
+        .select("referrer_id")
+        .eq("referral_code", code)
+        .is("referred_id", null)
+        .maybeSingle();
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      if (refRow && newUser && refRow.referrer_id !== newUser.id) {
+        await supabase.from("referrals").insert({
+          referrer_id: refRow.referrer_id,
+          referred_id: newUser.id,
+          referral_code: code,
+          status: "pending",
+        });
+      }
+      localStorage.removeItem("pending_referral_code");
+    } catch (e) {
+      console.error("Referral link failed:", e);
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -84,31 +109,7 @@ const Auth = () => {
     try {
       const validated = signupSchema.parse(signupData);
       await signUp(validated.email, validated.password, validated.fullName);
-
-      // Link referral if code present
-      const code = localStorage.getItem("pending_referral_code");
-      if (code) {
-        try {
-          const { data: refRow } = await supabase
-            .from("referrals")
-            .select("referrer_id")
-            .eq("referral_code", code)
-            .is("referred_id", null)
-            .maybeSingle();
-          const { data: { user: newUser } } = await supabase.auth.getUser();
-          if (refRow && newUser && refRow.referrer_id !== newUser.id) {
-            await supabase.from("referrals").insert({
-              referrer_id: refRow.referrer_id,
-              referred_id: newUser.id,
-              referral_code: code,
-              status: "pending",
-            });
-          }
-          localStorage.removeItem("pending_referral_code");
-        } catch (e) {
-          console.error("Referral link failed:", e);
-        }
-      }
+      await linkReferral();
     } catch (error: any) {
       if (error.errors) {
         const newErrors: Record<string, string> = {};
@@ -121,6 +122,69 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  // ---------- Email OTP ----------
+  const [otpEmail, setOtpEmail] = useState("");
+  const [otpName, setOtpName] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  const sendOtp = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const parsed = z.string().email().safeParse(otpEmail.trim());
+    if (!parsed.success) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: otpEmail.trim(),
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/`,
+          data: otpName.trim() ? { full_name: otpName.trim() } : undefined,
+        },
+      });
+      if (error) throw error;
+      setOtpSent(true);
+      setOtpCode("");
+      setResendIn(45);
+      toast.success("We sent a 6-digit code to your email");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async (code: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: otpEmail.trim(),
+        token: code,
+        type: "email",
+      });
+      if (error) throw error;
+      await linkReferral();
+      toast.success("Signed in successfully");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "Invalid or expired code");
+      setOtpCode("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2 bg-background">
