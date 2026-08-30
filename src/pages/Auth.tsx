@@ -5,13 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Mail, User, Download, X, ArrowLeft } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { BookOpen, Mail, User, Download, X, ArrowLeft, KeyRound } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { PasswordInput } from "@/components/PasswordInput";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
