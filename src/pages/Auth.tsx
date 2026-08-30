@@ -253,11 +253,114 @@ const Auth = () => {
 
           <Card className="shadow-lg border-border">
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
+          <Tabs defaultValue="otp" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="otp">Email OTP</TabsTrigger>
+              <TabsTrigger value="login">Password</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="otp">
+              <CardHeader>
+                <CardTitle>Sign in with Email OTP</CardTitle>
+                <CardDescription>
+                  {otpSent
+                    ? `Enter the 6-digit code we sent to ${otpEmail}`
+                    : "No password needed — we'll email you a one-time code"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!otpSent ? (
+                  <form onSubmit={sendOtp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="otp-email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="otp-email"
+                          type="email"
+                          placeholder="your@email.com"
+                          className="pl-10"
+                          value={otpEmail}
+                          onChange={(e) => setOtpEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="otp-name">Full Name (new users only)</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="otp-name"
+                          type="text"
+                          placeholder="John Doe"
+                          className="pl-10"
+                          value={otpName}
+                          onChange={(e) => setOtpName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      <KeyRound className="w-4 h-4 mr-2" />
+                      {loading ? "Sending code..." : "Send OTP"}
+                    </Button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={(v) => {
+                          setOtpCode(v);
+                          if (v.length === 6) verifyOtp(v);
+                        }}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={loading || otpCode.length !== 6}
+                      onClick={() => verifyOtp(otpCode)}
+                    >
+                      {loading ? "Verifying..." : "Verify & Continue"}
+                    </Button>
+                    <div className="flex items-center justify-between">
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="px-0 h-auto text-sm"
+                        disabled={loading || resendIn > 0}
+                        onClick={() => sendOtp()}
+                      >
+                        {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="px-0 h-auto text-sm text-muted-foreground"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtpCode("");
+                        }}
+                      >
+                        Change email
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </TabsContent>
+
 
             <TabsContent value="login">
               <form onSubmit={handleLogin}>
