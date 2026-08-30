@@ -363,13 +363,17 @@ const TestResult = () => {
                 </div>
 
                 {answer.questions.explanation && (
-                  <div className="p-4 rounded-lg border-l-4" style={{ background: 'hsl(210, 50%, 96%)', borderColor: 'hsl(210, 80%, 50%)' }}>
-                    <p className="text-sm font-bold mb-2" style={{ color: 'hsl(210, 80%, 35%)' }}>💡 Explanation:</p>
-                    <p className="text-sm leading-relaxed" style={{ color: 'hsl(222, 47%, 30%)' }}>
+                  <div className="p-4 rounded-lg border-l-4 border-primary bg-primary/5">
+                    <p className="text-sm font-bold mb-2 flex items-center gap-2 text-primary">
+                      <Lightbulb className="w-4 h-4" />
+                      Explanation
+                    </p>
+                    <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-line break-words">
                       {answer.questions.explanation}
                     </p>
                   </div>
                 )}
+
               </CardContent>
             </Card>
           ))}
