@@ -123,67 +123,8 @@ const Auth = () => {
     }
   };
 
-  // ---------- Email OTP ----------
-  const [otpEmail, setOtpEmail] = useState("");
-  const [otpName, setOtpName] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [resendIn, setResendIn] = useState(0);
 
-  useEffect(() => {
-    if (resendIn <= 0) return;
-    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resendIn]);
 
-  const sendOtp = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const parsed = z.string().email().safeParse(otpEmail.trim());
-    if (!parsed.success) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: otpEmail.trim(),
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/`,
-          data: otpName.trim() ? { full_name: otpName.trim() } : undefined,
-        },
-      });
-      if (error) throw error;
-      setOtpSent(true);
-      setOtpCode("");
-      setResendIn(45);
-      toast.success("We sent a 6-digit code to your email");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send code");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOtp = async (code: string) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: otpEmail.trim(),
-        token: code,
-        type: "email",
-      });
-      if (error) throw error;
-      await linkReferral();
-      toast.success("Signed in successfully");
-      navigate("/");
-    } catch (error: any) {
-      toast.error(error.message || "Invalid or expired code");
-      setOtpCode("");
-    } finally {
-      setLoading(false);
-    }
-  };
 
 
   return (
