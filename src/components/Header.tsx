@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { StudyByteLogo } from "@/components/StudyByteLogo";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -15,6 +16,7 @@ interface HeaderProps {
 
 export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -72,9 +74,15 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
                 <Search className="w-5 h-5" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
-              <Bell className="w-5 h-5" />
-            </Button>
+            {user ? (
+              <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
+                <Bell className="w-5 h-5" />
+              </Button>
+            ) : (
+              <Button size="sm" onClick={() => navigate('/auth')}>
+                Sign in
+              </Button>
+            )}
           </div>
         </div>
       </header>

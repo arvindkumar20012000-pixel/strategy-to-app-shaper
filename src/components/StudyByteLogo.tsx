@@ -4,8 +4,8 @@ interface StudyByteLogoProps {
 }
 
 /**
- * StudyByte mark — themeable SVG that adapts to light/dark mode
- * via the design system's `--primary` and `--secondary` HSL tokens.
+ * StudyByte monogram — professional "SB" mark on a rounded gradient tile.
+ * Fully themeable via the design system's `--primary` / `--secondary` tokens.
  */
 export const StudyByteLogo = ({ className, size = 32 }: StudyByteLogoProps) => {
   return (
@@ -18,42 +18,49 @@ export const StudyByteLogo = ({ className, size = 32 }: StudyByteLogoProps) => {
       role="img"
       aria-label="StudyByte logo"
     >
-      {/* Rounded square background using primary token */}
+      <defs>
+        <linearGradient id="sb-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="hsl(var(--primary))" />
+          <stop offset="100%" stopColor="hsl(var(--secondary))" />
+        </linearGradient>
+      </defs>
+
+      <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#sb-grad)" />
       <rect
         x="2"
         y="2"
         width="60"
         height="60"
-        rx="14"
-        fill="hsl(var(--primary))"
+        rx="16"
+        fill="none"
+        stroke="hsl(var(--primary-foreground))"
+        strokeOpacity="0.18"
+        strokeWidth="1.5"
       />
-      {/* Open book pages */}
-      <path
-        d="M14 22 C14 20.9 14.9 20 16 20 L30 20 C31.1 20 32 20.9 32 22 L32 46 C32 47.1 31.1 48 30 48 L16 48 C14.9 48 14 47.1 14 46 Z"
+
+      {/* SB monogram */}
+      <text
+        x="32"
+        y="33"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontFamily="'Instrument Serif', Georgia, serif"
+        fontSize="30"
+        letterSpacing="-0.5"
         fill="hsl(var(--primary-foreground))"
-        opacity="0.95"
-      />
-      <path
-        d="M32 22 C32 20.9 32.9 20 34 20 L48 20 C49.1 20 50 20.9 50 22 L50 46 C50 47.1 49.1 48 48 48 L34 48 C32.9 48 32 47.1 32 46 Z"
-        fill="hsl(var(--primary-foreground))"
-        opacity="0.85"
-      />
-      {/* Spine */}
+      >
+        SB
+      </text>
+
+      {/* Underline accent */}
       <rect
-        x="31"
-        y="20"
-        width="2"
-        height="28"
-        fill="hsl(var(--primary))"
-        opacity="0.5"
-      />
-      {/* Accent byte/spark dot in secondary color */}
-      <circle cx="46" cy="18" r="6" fill="hsl(var(--secondary))" />
-      <circle
-        cx="46"
-        cy="18"
-        r="2.2"
-        fill="hsl(var(--secondary-foreground))"
+        x="20"
+        y="47"
+        width="24"
+        height="3"
+        rx="1.5"
+        fill="hsl(var(--primary-foreground))"
+        opacity="0.7"
       />
     </svg>
   );
