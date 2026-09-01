@@ -491,26 +491,10 @@ const Auth = () => {
                      )}
                    </div>
 
-                   <div className="space-y-2">
-                     <Label htmlFor="signup-confirm">Confirm Password</Label>
-                     <PasswordInput
-                       id="signup-confirm"
-                       placeholder="••••••••"
-                       value={signupData.confirmPassword}
-                       onChange={(e) =>
-                         setSignupData({
-                           ...signupData,
-                           confirmPassword: e.target.value,
-                         })
-                       }
-                       required
-                     />
-                     {errors.confirmPassword && (
-                       <p className="text-sm text-destructive">
-                         {errors.confirmPassword}
-                       </p>
-                     )}
-                   </div>
+                   <p className="text-xs text-muted-foreground">
+                     No email verification needed — you're in instantly.
+                   </p>
+
 
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? "Creating account..." : "Create Account"}
