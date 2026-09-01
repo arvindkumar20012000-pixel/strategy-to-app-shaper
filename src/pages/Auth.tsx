@@ -51,7 +51,6 @@ const Auth = () => {
     fullName: "",
     email: "",
     password: "",
-    confirmPassword: "",
   });
 
   const handleLogin = async (e: React.FormEvent) => {
