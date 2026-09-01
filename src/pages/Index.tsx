@@ -182,7 +182,10 @@ const Index = () => {
   }, [allArticles, filter, selectedLanguage, searchQuery, selectedCategories]);
 
   const handleBookmark = async (articleId: string) => {
-    if (!user) return;
+    if (!user) {
+      toast.info("Sign in to save articles");
+      return;
+    }
 
     try {
       const article = articles.find((a) => a.id === articleId);
