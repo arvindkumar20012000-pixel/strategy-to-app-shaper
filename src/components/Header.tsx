@@ -72,9 +72,15 @@ export const Header = ({ onMenuClick, showSearch = true, onSearch }: HeaderProps
                 <Search className="w-5 h-5" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
-              <Bell className="w-5 h-5" />
-            </Button>
+            {user ? (
+              <Button variant="ghost" size="icon" onClick={() => navigate('/notifications')}>
+                <Bell className="w-5 h-5" />
+              </Button>
+            ) : (
+              <Button size="sm" onClick={() => navigate('/auth')}>
+                Sign in
+              </Button>
+            )}
           </div>
         </div>
       </header>
